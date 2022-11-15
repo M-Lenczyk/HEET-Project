@@ -52,5 +52,3 @@ file(GLOB SOURCES
 )
 
 add_executable( main main.cpp)
-add_executable( simple-integers simple-integers.cpp)
-add_executable( evaluation evaluation.cpp)
