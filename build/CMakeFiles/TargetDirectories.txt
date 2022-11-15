@@ -1,3 +1,0 @@
-/home/kriegor/palisade-release/heet_project/build/CMakeFiles/rebuild_cache.dir
-/home/kriegor/palisade-release/heet_project/build/CMakeFiles/edit_cache.dir
-/home/kriegor/palisade-release/heet_project/build/CMakeFiles/main.dir

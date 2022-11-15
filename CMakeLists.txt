@@ -52,3 +52,4 @@ file(GLOB SOURCES
 )
 
 add_executable( main main.cpp)
+add_executable(evaluation evaluation.cpp)

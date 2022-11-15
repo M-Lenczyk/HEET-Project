@@ -67,23 +67,25 @@ int main()
  	cout<<"Noise: ";
  	for(int i = 0; i<static_cast<int>(x1.size());i++)
  	{
-  		cout<<abs(dataVector[i]-(x1[i]+x2[i]))<<", ";
+  		dataVector2[i]=abs(dataVector[i]-(x1[i]+x2[i]));
+  		cout<<dataVector2[i]<<", ";
   	}
   	cout<<endl<<endl;
  	for(int i = 1; i<=9 ;i++)
- 	{	cout<<"ITERATION: "<<i+1<<endl;
- 		cAdd = cc->EvalAdd(cAdd,cAdd);
+ 	{	
+	 	cout<<"ITERATION: "<<i+1<<endl;
+ 		cAdd = cc->EvalAdd(cAdd,cAdd);	
  		cc->Decrypt(keys.secretKey, cAdd, &resultAdd);
 	 	resultAdd->SetLength(batchSize);
 	 	dataVector = resultAdd->GetRealPackedValue();
 	 	cout<<fixed;
 	 	cout<<"x1+x2 "<<resultAdd<<endl;
-	 	for(int j = 0; j<static_cast<int>(x1.size());j++)
+	 	cout<<"Noise: ";
+	 	for(int j = 0; i<static_cast<int>(x1.size());i++)
  		{
-  			cout<<"Noise: "<<abs(dataVector[j]-dataVector2[j])<<", ";
+  			cout<<abs(dataVector[j]-dataVector2[j]);
   		}
-  		dataVector2 = dataVector;
-	 	cout<<"Estimated precision in bits: "<<resultAdd->GetLogPrecision()<<endl;
+	 	
 	}
     auto end = chrono::steady_clock::now();
  
