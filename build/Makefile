@@ -111,6 +111,32 @@ depend:
 .PHONY : depend
 
 #=============================================================================
+# Target rules for targets named evaluation
+
+# Build rule for target.
+evaluation: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 evaluation
+.PHONY : evaluation
+
+# fast build rule for target.
+evaluation/fast:
+	$(MAKE) -f CMakeFiles/evaluation.dir/build.make CMakeFiles/evaluation.dir/build
+.PHONY : evaluation/fast
+
+#=============================================================================
+# Target rules for targets named simple-integers
+
+# Build rule for target.
+simple-integers: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 simple-integers
+.PHONY : simple-integers
+
+# fast build rule for target.
+simple-integers/fast:
+	$(MAKE) -f CMakeFiles/simple-integers.dir/build.make CMakeFiles/simple-integers.dir/build
+.PHONY : simple-integers/fast
+
+#=============================================================================
 # Target rules for targets named main
 
 # Build rule for target.
@@ -122,6 +148,33 @@ main: cmake_check_build_system
 main/fast:
 	$(MAKE) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/build
 .PHONY : main/fast
+
+evaluation.o: evaluation.cpp.o
+
+.PHONY : evaluation.o
+
+# target to build an object file
+evaluation.cpp.o:
+	$(MAKE) -f CMakeFiles/evaluation.dir/build.make CMakeFiles/evaluation.dir/evaluation.cpp.o
+.PHONY : evaluation.cpp.o
+
+evaluation.i: evaluation.cpp.i
+
+.PHONY : evaluation.i
+
+# target to preprocess a source file
+evaluation.cpp.i:
+	$(MAKE) -f CMakeFiles/evaluation.dir/build.make CMakeFiles/evaluation.dir/evaluation.cpp.i
+.PHONY : evaluation.cpp.i
+
+evaluation.s: evaluation.cpp.s
+
+.PHONY : evaluation.s
+
+# target to generate assembly for a file
+evaluation.cpp.s:
+	$(MAKE) -f CMakeFiles/evaluation.dir/build.make CMakeFiles/evaluation.dir/evaluation.cpp.s
+.PHONY : evaluation.cpp.s
 
 main.o: main.cpp.o
 
@@ -150,6 +203,33 @@ main.cpp.s:
 	$(MAKE) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/main.cpp.s
 .PHONY : main.cpp.s
 
+simple-integers.o: simple-integers.cpp.o
+
+.PHONY : simple-integers.o
+
+# target to build an object file
+simple-integers.cpp.o:
+	$(MAKE) -f CMakeFiles/simple-integers.dir/build.make CMakeFiles/simple-integers.dir/simple-integers.cpp.o
+.PHONY : simple-integers.cpp.o
+
+simple-integers.i: simple-integers.cpp.i
+
+.PHONY : simple-integers.i
+
+# target to preprocess a source file
+simple-integers.cpp.i:
+	$(MAKE) -f CMakeFiles/simple-integers.dir/build.make CMakeFiles/simple-integers.dir/simple-integers.cpp.i
+.PHONY : simple-integers.cpp.i
+
+simple-integers.s: simple-integers.cpp.s
+
+.PHONY : simple-integers.s
+
+# target to generate assembly for a file
+simple-integers.cpp.s:
+	$(MAKE) -f CMakeFiles/simple-integers.dir/build.make CMakeFiles/simple-integers.dir/simple-integers.cpp.s
+.PHONY : simple-integers.cpp.s
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -158,10 +238,18 @@ help:
 	@echo "... depend"
 	@echo "... rebuild_cache"
 	@echo "... edit_cache"
+	@echo "... evaluation"
+	@echo "... simple-integers"
 	@echo "... main"
+	@echo "... evaluation.o"
+	@echo "... evaluation.i"
+	@echo "... evaluation.s"
 	@echo "... main.o"
 	@echo "... main.i"
 	@echo "... main.s"
+	@echo "... simple-integers.o"
+	@echo "... simple-integers.i"
+	@echo "... simple-integers.s"
 .PHONY : help
 
 
