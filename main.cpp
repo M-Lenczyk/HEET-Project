@@ -1,6 +1,6 @@
 #include "palisade.h"
 #include "utils.cpp"
-
+#include <thread>
 
 using namespace lbcrypto;
 
@@ -8,10 +8,12 @@ using namespace lbcrypto;
 
 int main() 
 {
+    auto c = Clock();
     std::vector<int> v1 = {1,2,3,4};
     std::vector<int> v2 = {7,6,5,4};
 
     std::cout<<vector_statistic_combined(v1,v2).to_string()<<std::endl;
+    std::cout<<"elapsed time (ms): "<<c.getElapsedTime().asMilliseconds();
     return 0;
 }
 

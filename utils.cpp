@@ -1,13 +1,63 @@
-#include <math.h> //abs()
+#include <cmath> //abs()
 #include <string>
 #include <vector>
+#include <chrono>
+
+class Time
+{
+private:
+    uint64_t milliseconds;
+
+public:
+    Time(uint64_t milli) : milliseconds(milli) {};
+
+
+    uint64_t asMilliseconds()
+    {
+        return this->milliseconds;
+    }
+
+    float asSeconds()
+    {
+        return (float)(this->milliseconds)/1000.0;
+    }
+
+    Time operator-(const Time &t1)
+    {
+        return Time(std::labs(this->milliseconds - t1.milliseconds));
+    }
+};
+
+class Clock
+{
+private:
+    std::chrono::high_resolution_clock::time_point start;
+
+public:
+    Clock()
+    {
+        this->start = std::chrono::high_resolution_clock::now();
+    }
+
+    Time getElapsedTime()
+    {
+        return Time(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - this->start).count());
+    }
+
+    Time restart()
+    {
+        auto t = this->getElapsedTime();
+        this->start = std::chrono::high_resolution_clock::now();
+        return t;
+    }
+};
 
 class vectorLengnthDifferentException : std::exception
 {
     public:
     const char * what() const throw ()
     {
-        return "vectors passed by argument must be the same length";
+        return "vectors passed as arguments must be the same length";
     }
 };
 
@@ -38,8 +88,6 @@ vector_diff vector_mse(const std::vector<int> &v1,const  std::vector<int> &v2);
 
 vector_diff vector_statistic_combined(const std::vector<int> &v1,const  std::vector<int> &v2);
 
-void palisade_test();
-
 vector_diff vector_distance(const std::vector<int> &v1,const std::vector<int> &v2)
 {
     if(v1.size() != v2.size())throw vectorLengnthDifferentException();
@@ -47,7 +95,7 @@ vector_diff vector_distance(const std::vector<int> &v1,const std::vector<int> &v
     unsigned int distance=0;
     for(size_t i=0; i < v1.size(); i++)
     {
-        distance+=abs(v1[i]-v2[i]);
+        distance+=std::abs(v1[i]-v2[i]);
     }
 
     vector_diff diff;
@@ -79,7 +127,7 @@ vector_diff vector_mse(const std::vector<int> &v1,const std::vector<int> &v2)
     double mse=0;
     for(size_t i=0; i < v1.size(); i++)
     {
-        mse += pow(abs(v1[i]-v2[i]),2);
+        mse += pow(std::abs(v1[i]-v2[i]),2);
     }
     mse/= double(v1.size());
 
