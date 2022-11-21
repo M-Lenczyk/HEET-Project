@@ -52,12 +52,38 @@ public:
     }
 };
 
+class RandomNumberBetween
+{
+public:
+    RandomNumberBetween(int low, int high)
+    : random_engine_{std::random_device{}()}
+    , distribution_{low, high}
+    {
+    }
+    int operator()()
+    {
+        return distribution_(random_engine_);
+    }
+private:
+    std::mt19937 random_engine_;
+    std::uniform_int_distribution<int> distribution_;
+};
+
 class vectorLengnthDifferentException : std::exception
 {
     public:
     const char * what() const throw ()
     {
         return "vectors passed as arguments must be the same length";
+    }
+};
+
+class noVariantSpecifiedException : std::exception
+{
+    public:
+    const char * what() const throw ()
+    {
+        return "A testing variant has to be selected.";
     }
 };
 
