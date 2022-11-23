@@ -83,7 +83,7 @@ struct parameterBlock
 //Funkcja pomocnicza do wyświetlania w konsoli w przypadku wielu zestawu parametrów
 void breaker(unsigned short int variant)
 {	
-	vector<string> variantCheatSheet =
+	vector<std::string> variantCheatSheet =
 	{
 		"10 x ADD",
 		"10 x MUL",
@@ -98,6 +98,23 @@ void breaker(unsigned short int variant)
 	};
 	std::cout<<std::endl;
 	std::cout<<"-------------------------VARIANT "<<variant<<": "<<variantCheatSheet[variant-1]<<"-------------------------"<<std::endl;
+}
+
+template <typename T>
+void decrypt(TimeVar &t,CryptoContext<DCRTPoly> &cryptoContext,
+ 			LPKeyPair<DCRTPoly> &keyPair,
+ 			Ciphertext<T> &ciphertextResult,
+  			vector<Plaintext> &plaintextDatasetVector)
+{
+	Plaintext plaintextResult;//Zmienna wynikowa plaintext do odczytu
+	TIC(t);//Moment rozpoczecia mierzenia czasu deszyfracji
+	//Deszyfracja ciphertextResult na podstawie klucza w odniesieniu do cryptocontextu i zapisanie do plaintextResult
+	cryptoContext->Decrypt(keyPair.secretKey, ciphertextResult, &plaintextResult);
+	double processingTime = TOC(t);
+	std::cout << "\nDecryption time: " << processingTime << "ms" << std::endl;
+	//Ustawienie dlugosci wyswietlania wyniku na podstawie batchSize.
+	plaintextResult->SetLength(plaintextDatasetVector[0]->GetLength());
+	std::cout <<"\nDecryption result: "<< plaintextResult << std::endl;
 }
 
 //Funkcja główna do przeprowadzania pojedynczego eksperymentu na datasecie, zestawie parametrów i wybranego wariantu operacji homomorficznych
@@ -155,11 +172,10 @@ void experiment(parameterBlock p1, std::vector<std::vector<int64_t>> datasetVect
 	//WEKTOR PLAINTEXTOW
 	//Tworzymy kontener na nasz dataset w formacie plaintext
 	vector<Plaintext> plaintextDatasetVector;
-	for(unsigned int i = 0; i<datasetVector.size(); i++)
+	for(const auto &data : datasetVector)
 	{
 		//Konwertujemy nasz wektor liczbowy na obiekt plaintext i zapisujemy do naszego kontenera
-	 	Plaintext p = cryptoContext->MakePackedPlaintext(datasetVector[i]);
-	 	plaintextDatasetVector.push_back(p);
+	 	plaintextDatasetVector.push_back(cryptoContext->MakePackedPlaintext(data));
 	}
 	
 	//WEKTOR ZASZYFROWANYCH PLAINTEXTOW (CIPHERTEXT)
@@ -167,10 +183,10 @@ void experiment(parameterBlock p1, std::vector<std::vector<int64_t>> datasetVect
 	vector<Ciphertext<DCRTPoly>> ciphertexts;
 	
 	TIC(t);//Moment rozpoczecia mierzenia czasu szyfracji.
-	for(unsigned int i = 0; i<plaintextDatasetVector.size(); i++)
+	for(const auto &plaintext : plaintextDatasetVector)
 	{
 		//Zapisywanie do kontenera wartosci zaszyfrowanej naszego wektora liczbowego w formacie plaintext.
-	 	ciphertexts.push_back(cryptoContext->Encrypt(keyPair.publicKey, plaintextDatasetVector[i]));
+	 	ciphertexts.push_back(cryptoContext->Encrypt(keyPair.publicKey, plaintext));
 	}
 	processingTime = TOC(t);
 	std::cout << "\nTotal encryption time: "<<processingTime<<"ms";
@@ -195,15 +211,8 @@ void experiment(parameterBlock p1, std::vector<std::vector<int64_t>> datasetVect
 			std::cout << "\nTotal time of the homomorphic operations of the ciphertexts: "<<processingTime<<"ms";
 			
 			//DECRYPTION
-			Plaintext plaintextResult;//Zmienna wynikowa plaintext do odczytu
-			TIC(t);//Moment rozpoczecia mierzenia czasu deszyfracji
-			//Deszyfracja ciphertextResult na podstawie klucza w odniesieniu do cryptocontextu i zapisanie do plaintextResult
-			cryptoContext->Decrypt(keyPair.secretKey, ciphertextResult, &plaintextResult);
-			processingTime = TOC(t);
-			std::cout << "\nDecryption time: " << processingTime << "ms" << std::endl;
-			plaintextResult->SetLength(plaintextDatasetVector[0]->GetLength());//Ustawienie dlugosci wyswietlania wyniku na podstawie batchSize.
-			std::cout <<"\nDecryption result: "<< plaintextResult << std::endl;
-			break;
+			decrypt(t, cryptoContext, keyPair, ciphertextResult, plaintextDatasetVector);
+			break;			
 		}
 		case 2: 
 		{	
@@ -215,14 +224,8 @@ void experiment(parameterBlock p1, std::vector<std::vector<int64_t>> datasetVect
 			std::cout << "\nTotal time of the homomorphic operations of the ciphertexts:: "<<processingTime<<"ms"<<std::endl;
 				
 			//DECRYPTION
-			Plaintext plaintextResult;
-			TIC(t);
-			cryptoContext->Decrypt(keyPair.secretKey, ciphertextResult, &plaintextResult);
-			processingTime = TOC(t);
-			std::cout << "\nDecryption time: " << processingTime << "ms" << std::endl;
-			plaintextResult->SetLength(plaintextDatasetVector[0]->GetLength());
-			std::cout <<"\nDecryption result: "<< plaintextResult << std::endl;
-			break;	
+			decrypt(t, cryptoContext, keyPair, ciphertextResult, plaintextDatasetVector);
+			break;
 		}
 		case 3: 
 		{	
@@ -243,14 +246,8 @@ void experiment(parameterBlock p1, std::vector<std::vector<int64_t>> datasetVect
 			std::cout << "\nTotal time of the homomorphic operations of the ciphertexts:: "<<processingTime<<"ms"<<std::endl;
 				
 			//DECRYPTION
-			Plaintext plaintextResult;
-			TIC(t);
-			cryptoContext->Decrypt(keyPair.secretKey, ciphertextResult, &plaintextResult);
-			processingTime = TOC(t);
-			std::cout << "\nDecryption time: " << processingTime << "ms" << std::endl;
-			plaintextResult->SetLength(plaintextDatasetVector[0]->GetLength());
-			std::cout <<"\nDecryption result: "<< plaintextResult << std::endl;
-			break;	
+			decrypt(t, cryptoContext, keyPair, ciphertextResult, plaintextDatasetVector);
+			break;
 		}
 		case 4: 
 		{	
@@ -266,13 +263,7 @@ void experiment(parameterBlock p1, std::vector<std::vector<int64_t>> datasetVect
 			std::cout << "\nTotal time of the homomorphic operations of the ciphertexts:: "<<processingTime<<"ms"<<std::endl;
 				
 			//DECRYPTION
-			Plaintext plaintextResult;
-			TIC(t);
-			cryptoContext->Decrypt(keyPair.secretKey, ciphertextResult, &plaintextResult);
-			processingTime = TOC(t);
-			std::cout << "\nDecryption time: " << processingTime << "ms" << std::endl;
-			plaintextResult->SetLength(plaintextDatasetVector[0]->GetLength());
-			std::cout <<"\nDecryption result: "<< plaintextResult << std::endl;
+			decrypt(t, cryptoContext, keyPair, ciphertextResult, plaintextDatasetVector);
 			break;	
 		}
 		case 5: 
@@ -289,13 +280,7 @@ void experiment(parameterBlock p1, std::vector<std::vector<int64_t>> datasetVect
 			std::cout << "\nTotal time of the homomorphic operations of the ciphertexts:: "<<processingTime<<"ms"<<std::endl;
 				
 			//DECRYPTION
-			Plaintext plaintextResult;
-			TIC(t);
-			cryptoContext->Decrypt(keyPair.secretKey, ciphertextResult, &plaintextResult);
-			processingTime = TOC(t);
-			std::cout << "\nDecryption time: " << processingTime << "ms" << std::endl;
-			plaintextResult->SetLength(plaintextDatasetVector[0]->GetLength());
-			std::cout <<"\nDecryption result: "<< plaintextResult << std::endl;
+			decrypt(t, cryptoContext, keyPair, ciphertextResult, plaintextDatasetVector);
 			break;	
 		}
 		case 6: 
@@ -312,13 +297,7 @@ void experiment(parameterBlock p1, std::vector<std::vector<int64_t>> datasetVect
 			std::cout << "\nTotal time of the homomorphic operations of the ciphertexts:: "<<processingTime<<"ms"<<std::endl;
 				
 			//DECRYPTION
-			Plaintext plaintextResult;
-			TIC(t);
-			cryptoContext->Decrypt(keyPair.secretKey, ciphertextResult, &plaintextResult);
-			processingTime = TOC(t);
-			std::cout << "\nDecryption time: " << processingTime << "ms" << std::endl;
-			plaintextResult->SetLength(plaintextDatasetVector[0]->GetLength());
-			std::cout <<"\nDecryption result: "<< plaintextResult << std::endl;
+			decrypt(t, cryptoContext, keyPair, ciphertextResult, plaintextDatasetVector);
 			break;	
 		}
 		case 7: 
@@ -335,13 +314,7 @@ void experiment(parameterBlock p1, std::vector<std::vector<int64_t>> datasetVect
 			std::cout << "\nTotal time of the homomorphic operations of the ciphertexts:: "<<processingTime<<"ms"<<std::endl;
 				
 			//DECRYPTION
-			Plaintext plaintextResult;
-			TIC(t);
-			cryptoContext->Decrypt(keyPair.secretKey, ciphertextResult, &plaintextResult);
-			processingTime = TOC(t);
-			std::cout << "\nDecryption time: " << processingTime << "ms" << std::endl;
-			plaintextResult->SetLength(plaintextDatasetVector[0]->GetLength());
-			std::cout <<"\nDecryption result: "<< plaintextResult << std::endl;
+			decrypt(t, cryptoContext, keyPair, ciphertextResult, plaintextDatasetVector);
 			break;	
 		}
 		case 8: 
@@ -364,14 +337,8 @@ void experiment(parameterBlock p1, std::vector<std::vector<int64_t>> datasetVect
 			std::cout << "\nTotal time of the homomorphic operations of the ciphertexts:: "<<processingTime<<"ms"<<std::endl;
 				
 			//DECRYPTION
-			Plaintext plaintextResult;
-			TIC(t);
-			cryptoContext->Decrypt(keyPair.secretKey, ciphertextResult, &plaintextResult);
-			processingTime = TOC(t);
-			std::cout << "\nDecryption time: " << processingTime << "ms" << std::endl;
-			plaintextResult->SetLength(plaintextDatasetVector[0]->GetLength());
-			std::cout <<"\nDecryption result: "<< plaintextResult << std::endl;
-			break;	
+			decrypt(t, cryptoContext, keyPair, ciphertextResult, plaintextDatasetVector);
+			break;
 		}
 		case 9: 
 		{	
@@ -390,13 +357,7 @@ void experiment(parameterBlock p1, std::vector<std::vector<int64_t>> datasetVect
 			std::cout << "\nTotal time of the homomorphic operations of the ciphertexts:: "<<processingTime<<"ms"<<std::endl;
 				
 			//DECRYPTION
-			Plaintext plaintextResult;
-			TIC(t);
-			cryptoContext->Decrypt(keyPair.secretKey, ciphertextResult, &plaintextResult);
-			processingTime = TOC(t);
-			std::cout << "\nDecryption time: " << processingTime << "ms" << std::endl;
-			plaintextResult->SetLength(plaintextDatasetVector[0]->GetLength());
-			std::cout <<"\nDecryption result: "<< plaintextResult << std::endl;
+			decrypt(t, cryptoContext, keyPair, ciphertextResult, plaintextDatasetVector);
 			break;	
 		}
 		case 10: 
@@ -416,13 +377,7 @@ void experiment(parameterBlock p1, std::vector<std::vector<int64_t>> datasetVect
 			std::cout << "\nTotal time of the homomorphic operations of the ciphertexts:: "<<processingTime<<"ms"<<std::endl;
 			
 			//DECRYPTION
-			Plaintext plaintextResult;
-			TIC(t);
-			cryptoContext->Decrypt(keyPair.secretKey, ciphertextResult, &plaintextResult);
-			processingTime = TOC(t);
-			std::cout << "\nDecryption time: " << processingTime << "ms" << std::endl;
-			plaintextResult->SetLength(plaintextDatasetVector[0]->GetLength());
-			std::cout <<"\nDecryption result: "<< plaintextResult << std::endl;
+			decrypt(t, cryptoContext, keyPair, ciphertextResult, plaintextDatasetVector);
 			break;	
 		}
 		
