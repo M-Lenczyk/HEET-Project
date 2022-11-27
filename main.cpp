@@ -8,6 +8,7 @@
 #include <iterator>
 #include <thread>
 #include <vector>
+#include <cmath>
 
 #include <bits/stdc++.h>
 
@@ -19,7 +20,7 @@ struct parameterBlock
 	//Te parametry beda zmieniane
 
     PlaintextModulus plaintextModulus; //Plaintextmodulus - w naszym przypadku (integers) maksymalna granica obliczeń - The bound for integer arithmetic
-    SecurityLevel securityLevel;//Poziom zabezpieczeń, inaczej trudność złamania bez znajomości klucza. Np. Dla HE128 oznacza to 2^128 operacji przy najlepszej metodzie ataku.
+    SecurityLevel securityLevel;//Poziom zabezpieczeń, długość klucza - inaczej trudność złamania bez znajomości klucza. Np. Dla HE128 oznacza to 2^128 operacji przy najlepszej metodzie ataku.
     float dist;//W innych metodach pod nazwą stdDev. Odchylenie standardowe. Używany do generowania szumu gaussowskiego. Standardowo 3.2, 3.4 Distribution parameter for Gaussian noise generation 
     unsigned int numMults;//Maksymalna 'głębokość' operacji mnożeń. Nie jest to liczba mnożeń. Np. dla x1*x2*x3*x4 numMults = 1, natomiast dla (((x1*x2)*x3)*x4) numMults wynosi już 4. Multiplicative depth for homomorphic computations (assumes numAdds and numKeySwitches are set to zero)
     
@@ -191,7 +192,6 @@ void experiment(parameterBlock p1, std::vector<std::vector<int64_t>> datasetVect
 	processingTime = TOC(t);
 	std::cout << "\nTotal encryption time: "<<processingTime<<"ms";
 	std::cout << "\nAverage encryption time for single plaintext: " <<processingTime / plaintextDatasetVector.size() << "ms";
-	
 	//TESTOWANIE WARIANTÓW
 	switch(variant)
 	{
@@ -384,44 +384,69 @@ void experiment(parameterBlock p1, std::vector<std::vector<int64_t>> datasetVect
 	}
 }
 
+//Funkcja która bierze pierwszą spełniającą warunki PALISADE liczbę pierwszą równą bądź większą od naszej proponowanej
+uint64_t modulusPicker(long long unsigned int approxDesiredModulus = 536903681, long unsigned int cyclotomicOrder = 65536, bool debug=0)
+	{	
+		//Rozmiar modulusa w bitach. Na przykład: 
+		//dla modulusa = 15 mamu: ceil(log2(15)) = ceil(3.9) = 4 
+		//dla modulusa = 16 mamy ceil(log2(16)) = ceil(4.0) = 4 
+		//dla modulusa = 17 mamy ceil(log2(17)) = ceil(4.08) = 5
+		unsigned short bits = ceil(log2(approxDesiredModulus));
+		
+		//Wybór pierwszej liczby pierwszego która spełnia nasze kryteria i wymagania PALISADE
+		//To jest nasz rzeczywisty modulus
+    	auto viablePrime = FirstPrime<NativeInteger>(bits-1, 2*cyclotomicOrder);
+    	
+    	//Konwersja wybranego modulusa do formatu akceptowanego przez zestaw parametrów
+    	uint64_t plaintextModulus = reinterpret_cast<uint64_t &>(viablePrime);
+    	
+    	if(debug)
+    	{
+    		std::cout<<"Desired modulus: "<<approxDesiredModulus<<std::endl;
+	    	std::cout<<"Number of bits: "<<bits<<std::endl;
+	    	std::cout<<"Satisfactory prime: "<<viablePrime<<" Type: "<<typeid(viablePrime).name()<<std::endl;
+	    	std::cout<<"Respective modulus: "<<plaintextModulus<<" Type: "<<typeid(plaintextModulus).name()<<std::endl;
+		}
+    	return plaintextModulus;
+	}
    
 int main() 
 {
     //auto c = Clock();
     
-    //WIP: Szukanie odpowiedniego modulusa na podstawie liczby bitow
-	//auto plaintextModulus = FirstPrime<NativeInteger>(bits, 2*n);
+	//Wywołanie funkcji modulusPicker:
+	// 1 - przybliżony docelowy modulus
+	// 2 - rząd cyklotomiczny (m) - default: 65536. 
+	// UWAGA: W przypadku dobrania zbyt rozbieżnego zestawu parametrów może zaistnieć potrzeba zmiany cyclotomicOrder na wartość zaproponowaną z konsoli
+	// 3 - flaga do debugowania, wyświetlania. Domyślnie wyłączona tj. debug = 0
+	
+	//Wynik funkcji zostanie wybrany na nasz modulus. Patrz opis/definicje funkcji
+	
+	//uint64_t mydebugModulus = modulusPicker(1000,3,1)
+	uint64_t myModulus = modulusPicker(536903681);
+	uint64_t myModulus2 = modulusPicker(375049);
+	uint64_t myModulus3 = modulusPicker(10002191);
+	uint64_t myModulus4 = modulusPicker(75005101);
+	uint64_t myModulus5 = modulusPicker(9750005347);
 	
     //Przyklad instancji zestawu parametrow. 
 	//Odpowiednio: 
-	//Modulus(plaintextModulus) - liczba pierwsza spelniajaca okreslony warunek (zalatwimy to funkcja wyzej), 
-	//Poziom zabezpieczen(securityLevel) - HEStd_128_classic lub HEStd_192_classic, HEStd_256_classic
+	//Modulus(plaintextModulus) - liczba pierwsza spelniajaca okreslony warunek (zalatwiane funkcja modulusPicker), 
+	//Poziom zabezpieczen(securityLevel), długość klucza - HEStd_128_classic lub HEStd_192_classic, HEStd_256_classic
 	//Wskaźnik odchylenia standardowego dla szumu gaussa (dist)
 	//Maksymalna głębokość mnożeń (numMults)
-	parameterBlock p1(536903681, HEStd_128_classic, 3.2, 3);
 	
-	parameterBlock p2(375049, HEStd_128_classic, 3.2, 3);
-	parameterBlock p3(10002191, HEStd_128_classic, 3.2, 3);
-	parameterBlock p4(75005101, HEStd_128_classic, 3.2, 3);
-	parameterBlock p5(9750005347, HEStd_128_classic, 3.2, 3);
+	parameterBlock p1(myModulus, HEStd_128_classic, 3.2, 3);
+	parameterBlock p2(myModulus2, HEStd_128_classic, 3.2, 3);
+	parameterBlock p3(myModulus3, HEStd_128_classic, 3.2, 3);
+	parameterBlock p4(myModulus4, HEStd_128_classic, 3.2, 3);
+	parameterBlock p5(myModulus5, HEStd_128_classic, 3.2, 3);
 	
-	parameterBlock p6(375049, HEStd_128_classic, 3.2, 3);
-	parameterBlock p7(536903681, HEStd_192_classic, 3.2, 3);
-	parameterBlock p8(375049, HEStd_192_classic, 3.2, 3);
-	parameterBlock p9(536903681, HEStd_256_classic, 3.2, 3);
-	parameterBlock p10(375049, HEStd_256_classic, 3.2, 3);
-	
-	parameterBlock p11(536903681, HEStd_128_classic, 0.2, 3);
-	parameterBlock p12(536903681, HEStd_128_classic, 6.4, 3);
-	parameterBlock p13(536903681, HEStd_128_classic, 20.4, 3);
-	parameterBlock p14(536903681, HEStd_128_classic, 100.8, 3);
-	parameterBlock p15(536903681, HEStd_128_classic, 0.0001, 3);
-	
-	parameterBlock p16(536903681, HEStd_128_classic, 3.2, 1);
-	parameterBlock p17(536903681, HEStd_128_classic, 3.2, 2);
-	parameterBlock p18(536903681, HEStd_128_classic, 3.2, 9);
-	parameterBlock p19(536903681, HEStd_128_classic, 3.2, 20);
-	parameterBlock p20(536903681, HEStd_128_classic, 3.2, 50);
+	parameterBlock p6(myModulus, HEStd_128_classic, 3.2, 3);
+	parameterBlock p7(myModulus2, HEStd_192_classic, 3.2, 3);
+	parameterBlock p8(myModulus, HEStd_192_classic, 3.2, 3);
+	parameterBlock p9(myModulus2, HEStd_256_classic, 3.2, 3);
+	parameterBlock p10(myModulus, HEStd_256_classic, 3.2, 3);
 	
 	//TWORZENIE DATASETU - 10 wektorów o rozmiarze vectorSize, wypełniony liczbami od 1 do UpperBound
 	unsigned int vectorSize = 10;
@@ -447,8 +472,18 @@ int main()
 	//9. 3x ADD + 3x MUL + 4x ADD
 	//10. 2x MUL + 5x ADD + 1x MUL + 2x ADD
 	
-	unsigned short int variant=10;//Wybrany wariant testu
+	unsigned short int variant=1;//Wybrany wariant testu
 	experiment(p1,datasetVector,variant);
+	experiment(p2,datasetVector,2);
+	experiment(p3,datasetVector,3);
+	experiment(p4,datasetVector,4);
+	experiment(p5,datasetVector,5);
+	
+	experiment(p1,datasetVector,6);
+	experiment(p2,datasetVector,7);
+	experiment(p3,datasetVector,8);
+	experiment(p4,datasetVector,9);
+	experiment(p5,datasetVector,10);
 	//TODO: ... more experiments
 }
 
