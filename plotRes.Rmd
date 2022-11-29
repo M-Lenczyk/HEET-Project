@@ -1,0 +1,50 @@
+---
+title: "plot results"
+output: html_document
+---
+
+```{r, warning=F, message=F}
+library(dplyr)
+library(ggplot2)
+library(tidyr)
+```
+
+```{r}
+results <- read.csv2("results.csv", stringsAsFactors = T)
+```
+
+```{r}
+results %>%
+  ##na.omit() %>% 
+  group_by(ptMod,variant,securityLevel,dist,numMults) %>% 
+  summarise(across(-nthRep, mean), .groups = "drop", na.rm=T) %>% 
+  mutate_if(is.numeric, round, 2) ->
+  df
+```
+
+```{r}
+df %>% 
+  pivot_longer(keyGenTime:decTime,
+               names_to = "measure", values_to = "time",
+               values_drop_na = F)
+```
+```{r fig.height=10, fig.width=10, warning=FALSE, message=FALSE}
+df %>% 
+  pivot_longer(keyGenTime:decTime,
+               names_to = "measure", values_to = "time",
+               values_drop_na = F) %>% 
+  ggplot(aes(y = time,
+                 x = numMults,
+                 color = securityLevel)) +
+    facet_grid(measure ~ ptMod) +
+    geom_point(size = 1,
+               position = position_jitter()) +
+    geom_smooth(linewidth = 0.2) +
+    coord_cartesian(ylim = c(0, NA)) +
+    theme_dark()
+```
+
+
+
+
+

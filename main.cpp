@@ -105,7 +105,8 @@ template <typename T>
 void decrypt(TimeVar &t,CryptoContext<DCRTPoly> &cryptoContext,
  			LPKeyPair<DCRTPoly> &keyPair,
  			Ciphertext<T> &ciphertextResult,
-  			vector<Plaintext> &plaintextDatasetVector)
+  			vector<Plaintext> &plaintextDatasetVector,
+			std::ofstream *resFile = nullptr)
 {
 	Plaintext plaintextResult;//Zmienna wynikowa plaintext do odczytu
 	TIC(t);//Moment rozpoczecia mierzenia czasu deszyfracji
@@ -113,16 +114,21 @@ void decrypt(TimeVar &t,CryptoContext<DCRTPoly> &cryptoContext,
 	cryptoContext->Decrypt(keyPair.secretKey, ciphertextResult, &plaintextResult);
 	double processingTime = TOC(t);
 	std::cout << "\nDecryption time: " << processingTime << "ms" << std::endl;
+	if (resFile != nullptr) (*resFile) << processingTime << std::endl;
 	//Ustawienie dlugosci wyswietlania wyniku na podstawie batchSize.
 	plaintextResult->SetLength(plaintextDatasetVector[0]->GetLength());
 	std::cout <<"\nDecryption result: "<< plaintextResult << std::endl;
 }
 
+
+
 //Funkcja główna do przeprowadzania pojedynczego eksperymentu na datasecie, zestawie parametrów i wybranego wariantu operacji homomorficznych
-void experiment(parameterBlock p1, std::vector<std::vector<int64_t>> datasetVector, unsigned short int variant)
+void experiment(parameterBlock p1, std::vector<std::vector<int64_t>> datasetVector, unsigned short int variant, std::ofstream *resFile = nullptr, unsigned int nthRepeat = 1)
 {
 	TimeVar t; //Obiekt ktory bedzie zliczal czas.
   	double processingTime(0.0);//Zmienna ktora bedzie przechowywac czas zliczony przez obiekt t klasy TimeVar
+
+	bool writeToFile = (resFile != nullptr) ? true : false;
   	
 	//Tworzenie zestawu parametrów używanych do zakodowania samych plaintextów na podstawie naszego modulusa. 
 	//Parametry te są obiektem/kontenerem encodingParams klasy EncodingParams.   
@@ -152,6 +158,15 @@ void experiment(parameterBlock p1, std::vector<std::vector<int64_t>> datasetVect
 	std::cout << "\nSecurity Level: "<<p1.securityLevel;
 	std::cout << "\nDistribution (Gauss): "<<p1.dist;
 	std::cout << "\nDepth (numMults): "<<p1.numMults;
+	if (writeToFile) {
+		std::cout << "\nWriting to file";
+		(*resFile) << cryptoContext->GetCryptoParameters()->GetPlaintextModulus() <<";";
+		(*resFile) << p1.securityLevel <<";";
+		(*resFile) << p1.dist <<";";
+		(*resFile) << p1.numMults <<";";
+		(*resFile) << variant <<";";
+		(*resFile) << nthRepeat <<";";
+	}
 	std::cout << std::endl;
 	
 	// Initialize Public Key Containers
@@ -163,12 +178,14 @@ void experiment(parameterBlock p1, std::vector<std::vector<int64_t>> datasetVect
 	keyPair = cryptoContext->KeyGen();//Generacja pary kluczy do szyfrowania naszych danych które będą w formacie plaintext
 	processingTime = TOC(t);//Moment zakonczenia mierzenia czasu i przypisania do zmiennej. Czas dla obiektu t jest zresetowany automatycznie.
   	std::cout<<"\nSource key generation time: " <<processingTime<<"ms"<<std::endl;
+	if (writeToFile) (*resFile) << processingTime <<";";
 	
 	//GENEROWANIE KLUCZY DLA MNOZENIA HOMOMORFICZNEGO
 	TIC(t);//Moment rozpoczecia mierzenia czasu.
 	cryptoContext->EvalMultKeysGen(keyPair.secretKey);//Generowanie kluczy wymaganych do operacji mnozenia homomorficznego na podstawie klucza danych źródłowych.
 	processingTime = TOC(t);//Moment zakończenia mierzenia czasu.
   	std::cout<<"Key generation time for homomorphic multiplication evaluation keys: "<<processingTime<<"ms";
+	if (writeToFile) (*resFile) << processingTime <<";";
 	
 	//WEKTOR PLAINTEXTOW
 	//Tworzymy kontener na nasz dataset w formacie plaintext
@@ -192,6 +209,8 @@ void experiment(parameterBlock p1, std::vector<std::vector<int64_t>> datasetVect
 	processingTime = TOC(t);
 	std::cout << "\nTotal encryption time: "<<processingTime<<"ms";
 	std::cout << "\nAverage encryption time for single plaintext: " <<processingTime / plaintextDatasetVector.size() << "ms";
+	if (writeToFile) (*resFile) << processingTime <<";";
+	if (writeToFile) (*resFile) << processingTime / plaintextDatasetVector.size() <<";";
 	//TESTOWANIE WARIANTÓW
 	switch(variant)
 	{
@@ -209,9 +228,10 @@ void experiment(parameterBlock p1, std::vector<std::vector<int64_t>> datasetVect
 			auto ciphertextResult = cryptoContext->EvalAddMany(ciphertexts);
 			processingTime = TOC(t);
 			std::cout << "\nTotal time of the homomorphic operations of the ciphertexts: "<<processingTime<<"ms";
+			if (writeToFile) (*resFile) << processingTime << ";";
 			
 			//DECRYPTION
-			decrypt(t, cryptoContext, keyPair, ciphertextResult, plaintextDatasetVector);
+			decrypt(t, cryptoContext, keyPair, ciphertextResult, plaintextDatasetVector, resFile);
 			break;			
 		}
 		case 2: 
@@ -222,9 +242,10 @@ void experiment(parameterBlock p1, std::vector<std::vector<int64_t>> datasetVect
 			auto ciphertextResult = cryptoContext->EvalMultMany(ciphertexts);
 			processingTime = TOC(t);
 			std::cout << "\nTotal time of the homomorphic operations of the ciphertexts:: "<<processingTime<<"ms"<<std::endl;
+			if (writeToFile) (*resFile) << processingTime << ";";
 				
 			//DECRYPTION
-			decrypt(t, cryptoContext, keyPair, ciphertextResult, plaintextDatasetVector);
+			decrypt(t, cryptoContext, keyPair, ciphertextResult, plaintextDatasetVector, resFile);
 			break;
 		}
 		case 3: 
@@ -244,9 +265,10 @@ void experiment(parameterBlock p1, std::vector<std::vector<int64_t>> datasetVect
 			auto ciphertextResult = cryptoContext->EvalMult(ciphertextResultS1, ciphertextResultS2);
 			processingTime = TOC(t);
 			std::cout << "\nTotal time of the homomorphic operations of the ciphertexts:: "<<processingTime<<"ms"<<std::endl;
+			if (writeToFile) (*resFile) << processingTime << ";";
 				
 			//DECRYPTION
-			decrypt(t, cryptoContext, keyPair, ciphertextResult, plaintextDatasetVector);
+			decrypt(t, cryptoContext, keyPair, ciphertextResult, plaintextDatasetVector, resFile);
 			break;
 		}
 		case 4: 
@@ -261,9 +283,10 @@ void experiment(parameterBlock p1, std::vector<std::vector<int64_t>> datasetVect
 			auto ciphertextResult = cryptoContext->EvalAdd(ciphertextResultS1, ciphertextResultS2);
 			processingTime = TOC(t);
 			std::cout << "\nTotal time of the homomorphic operations of the ciphertexts:: "<<processingTime<<"ms"<<std::endl;
+			if (writeToFile) (*resFile) << processingTime << ";";
 				
 			//DECRYPTION
-			decrypt(t, cryptoContext, keyPair, ciphertextResult, plaintextDatasetVector);
+			decrypt(t, cryptoContext, keyPair, ciphertextResult, plaintextDatasetVector, resFile);
 			break;	
 		}
 		case 5: 
@@ -278,9 +301,10 @@ void experiment(parameterBlock p1, std::vector<std::vector<int64_t>> datasetVect
 			auto ciphertextResult = cryptoContext->EvalAdd(ciphertextResultS1, ciphertextResultS2);
 			processingTime = TOC(t);
 			std::cout << "\nTotal time of the homomorphic operations of the ciphertexts:: "<<processingTime<<"ms"<<std::endl;
+			if (writeToFile) (*resFile) << processingTime << ";";
 				
 			//DECRYPTION
-			decrypt(t, cryptoContext, keyPair, ciphertextResult, plaintextDatasetVector);
+			decrypt(t, cryptoContext, keyPair, ciphertextResult, plaintextDatasetVector, resFile);
 			break;	
 		}
 		case 6: 
@@ -295,9 +319,10 @@ void experiment(parameterBlock p1, std::vector<std::vector<int64_t>> datasetVect
 			auto ciphertextResult = cryptoContext->EvalAdd(ciphertextResultS1, ciphertextResultS2);
 			processingTime = TOC(t);
 			std::cout << "\nTotal time of the homomorphic operations of the ciphertexts:: "<<processingTime<<"ms"<<std::endl;
+			if (writeToFile) (*resFile) << processingTime << ";";
 				
 			//DECRYPTION
-			decrypt(t, cryptoContext, keyPair, ciphertextResult, plaintextDatasetVector);
+			decrypt(t, cryptoContext, keyPair, ciphertextResult, plaintextDatasetVector, resFile);
 			break;	
 		}
 		case 7: 
@@ -312,9 +337,10 @@ void experiment(parameterBlock p1, std::vector<std::vector<int64_t>> datasetVect
 			auto ciphertextResult = cryptoContext->EvalMult(ciphertextResultS1, ciphertextResultS2);
 			processingTime = TOC(t);
 			std::cout << "\nTotal time of the homomorphic operations of the ciphertexts:: "<<processingTime<<"ms"<<std::endl;
+			if (writeToFile) (*resFile) << processingTime << ";";
 				
 			//DECRYPTION
-			decrypt(t, cryptoContext, keyPair, ciphertextResult, plaintextDatasetVector);
+			decrypt(t, cryptoContext, keyPair, ciphertextResult, plaintextDatasetVector, resFile);
 			break;	
 		}
 		case 8: 
@@ -335,9 +361,10 @@ void experiment(parameterBlock p1, std::vector<std::vector<int64_t>> datasetVect
 			
 			processingTime = TOC(t);
 			std::cout << "\nTotal time of the homomorphic operations of the ciphertexts:: "<<processingTime<<"ms"<<std::endl;
+			if (writeToFile) (*resFile) << processingTime << ";";
 				
 			//DECRYPTION
-			decrypt(t, cryptoContext, keyPair, ciphertextResult, plaintextDatasetVector);
+			decrypt(t, cryptoContext, keyPair, ciphertextResult, plaintextDatasetVector, resFile);
 			break;
 		}
 		case 9: 
@@ -355,9 +382,10 @@ void experiment(parameterBlock p1, std::vector<std::vector<int64_t>> datasetVect
 			
 			processingTime = TOC(t);
 			std::cout << "\nTotal time of the homomorphic operations of the ciphertexts:: "<<processingTime<<"ms"<<std::endl;
+			if (writeToFile) (*resFile) << processingTime << ";";
 				
 			//DECRYPTION
-			decrypt(t, cryptoContext, keyPair, ciphertextResult, plaintextDatasetVector);
+			decrypt(t, cryptoContext, keyPair, ciphertextResult, plaintextDatasetVector, resFile);
 			break;	
 		}
 		case 10: 
@@ -375,9 +403,10 @@ void experiment(parameterBlock p1, std::vector<std::vector<int64_t>> datasetVect
 			
 			processingTime = TOC(t);
 			std::cout << "\nTotal time of the homomorphic operations of the ciphertexts:: "<<processingTime<<"ms"<<std::endl;
+			if (writeToFile) (*resFile) << processingTime << ";";
 			
 			//DECRYPTION
-			decrypt(t, cryptoContext, keyPair, ciphertextResult, plaintextDatasetVector);
+			decrypt(t, cryptoContext, keyPair, ciphertextResult, plaintextDatasetVector, resFile);
 			break;	
 		}
 		
@@ -423,11 +452,11 @@ int main()
 	//Wynik funkcji zostanie wybrany na nasz modulus. Patrz opis/definicje funkcji
 	
 	//uint64_t mydebugModulus = modulusPicker(1000,3,1)
-	uint64_t myModulus = modulusPicker(536903681);
-	uint64_t myModulus2 = modulusPicker(375049);
-	uint64_t myModulus3 = modulusPicker(10002191);
-	uint64_t myModulus4 = modulusPicker(75005101);
-	uint64_t myModulus5 = modulusPicker(9750005347);
+	// uint64_t myModulus = modulusPicker(536903681);
+	// uint64_t myModulus2 = modulusPicker(375049);
+	// uint64_t myModulus3 = modulusPicker(10002191);
+	// uint64_t myModulus4 = modulusPicker(75005101);
+	// uint64_t myModulus5 = modulusPicker(9750005347);
 	
     //Przyklad instancji zestawu parametrow. 
 	//Odpowiednio: 
@@ -436,17 +465,17 @@ int main()
 	//Wskaźnik odchylenia standardowego dla szumu gaussa (dist)
 	//Maksymalna głębokość mnożeń (numMults)
 	
-	parameterBlock p1(myModulus, HEStd_128_classic, 3.2, 3);
-	parameterBlock p2(myModulus2, HEStd_128_classic, 3.2, 3);
-	parameterBlock p3(myModulus3, HEStd_128_classic, 3.2, 3);
-	parameterBlock p4(myModulus4, HEStd_128_classic, 3.2, 3);
-	parameterBlock p5(myModulus5, HEStd_128_classic, 3.2, 3);
+	// parameterBlock p1(myModulus, HEStd_128_classic, 3.2, 3);
+	// parameterBlock p2(myModulus2, HEStd_128_classic, 3.2, 3);
+	// parameterBlock p3(myModulus3, HEStd_128_classic, 3.2, 3);
+	// parameterBlock p4(myModulus4, HEStd_128_classic, 3.2, 3);
+	// parameterBlock p5(myModulus5, HEStd_128_classic, 3.2, 3);
 	
-	parameterBlock p6(myModulus, HEStd_128_classic, 3.2, 3);
-	parameterBlock p7(myModulus2, HEStd_192_classic, 3.2, 3);
-	parameterBlock p8(myModulus, HEStd_192_classic, 3.2, 3);
-	parameterBlock p9(myModulus2, HEStd_256_classic, 3.2, 3);
-	parameterBlock p10(myModulus, HEStd_256_classic, 3.2, 3);
+	// parameterBlock p6(myModulus, HEStd_128_classic, 3.2, 3);
+	// parameterBlock p7(myModulus2, HEStd_192_classic, 3.2, 3);
+	// parameterBlock p8(myModulus, HEStd_192_classic, 3.2, 3);
+	// parameterBlock p9(myModulus2, HEStd_256_classic, 3.2, 3);
+	// parameterBlock p10(myModulus, HEStd_256_classic, 3.2, 3);
 	
 	//TWORZENIE DATASETU - 10 wektorów o rozmiarze vectorSize, wypełniony liczbami od 1 do UpperBound
 	unsigned int vectorSize = 10;
@@ -472,18 +501,69 @@ int main()
 	//9. 3x ADD + 3x MUL + 4x ADD
 	//10. 2x MUL + 5x ADD + 1x MUL + 2x ADD
 	
-	unsigned short int variant=1;//Wybrany wariant testu
-	experiment(p1,datasetVector,variant);
-	experiment(p2,datasetVector,2);
-	experiment(p3,datasetVector,3);
-	experiment(p4,datasetVector,4);
-	experiment(p5,datasetVector,5);
+	// unsigned short int variant=1;//Wybrany wariant testu
+
+	std::ofstream resFile("../results.csv");//Plik z wynikami
+	resFile << "ptMod;securityLevel;dist;numMults;variant;nthRep;"
+	 		<< "keyGenTime;keyGen4HMEkeys;totEncTime;avgEncTime;totHomOpr;decTime" <<std::endl;//Nagłówek w pliku z wynikami
+
+	//Testowane warianty parametrów
+	vector<long long unsigned int> testedModulusesInt = {
+		536903681,
+		375049
+		// ,
+		// 10002191,
+		// 75005101,
+		// 9750005347
+	};
+	vector<SecurityLevel> testedSecurityLevels = {
+		HEStd_128_classic,
+		HEStd_192_classic
+		// ,
+		// HEStd_256_classic
+	};
+	vector<float> testedDists = {
+		1.7
+		// , 3.2, 5.4
+	};
+	vector<unsigned int> testedNumMults = {
+		1, 2, 3, 4, 5
+		// , 6, 7, 8, 9, 10
+	};
+	vector<unsigned short int> testedVariants = {
+		1, 2
+		// , 3, 4, 5, 6, 7, 8, 9, 10
+	};
+	unsigned int repeat = 3;//Powtórz eksperyment n razy z tymi samymi parametrami
+
+	int numToTest = testedModulusesInt.size() * testedSecurityLevels.size() * testedDists.size() *
+					 testedNumMults.size() * testedVariants.size() * repeat;
+	int numTested = 0;
+	for (auto &currModulus : testedModulusesInt)
+		for (auto &currSecLvl : testedSecurityLevels)
+			for (auto &currDist : testedDists)
+				for (auto &currNumMults : testedNumMults)
+					for (auto &currTestedVariant : testedVariants)
+						for (unsigned int rep=0; rep<repeat; rep++)
+						{
+							std::cout << "Progress (total " << numToTest << ") tested: " << numTested;
+							numTested++;
+							parameterBlock params(modulusPicker(currModulus), currSecLvl, currDist, currNumMults);
+							experiment(params,datasetVector,currTestedVariant,&resFile,rep);
+						}
+
 	
-	experiment(p1,datasetVector,6);
-	experiment(p2,datasetVector,7);
-	experiment(p3,datasetVector,8);
-	experiment(p4,datasetVector,9);
-	experiment(p5,datasetVector,10);
+	// experiment(p1,datasetVector,variant);
+	// experiment(p2,datasetVector,2);
+	// experiment(p3,datasetVector,3);
+	// experiment(p4,datasetVector,4);
+	// experiment(p5,datasetVector,5);
+	
+	// experiment(p1,datasetVector,6);
+	// experiment(p2,datasetVector,7);
+	// experiment(p3,datasetVector,8);
+	// experiment(p4,datasetVector,9);
+	// experiment(p5,datasetVector,10);
 	//TODO: ... more experiments
 }
 
