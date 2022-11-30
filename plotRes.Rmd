@@ -1,6 +1,13 @@
 ---
-title: "plot results"
-output: html_document
+title: "Plot results"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    toc_collapsed: true
+    toc_depth: 3
+    number_sections: false
+    theme: lumen
 ---
 
 ```{r, warning=F, message=F}
@@ -10,41 +17,177 @@ library(tidyr)
 ```
 
 ```{r}
-results <- read.csv2("results.csv", stringsAsFactors = T)
+measureDict <- c(keyGenTime = "key generation",
+                 keyGen4HMEkeys = "key gen 4 HME",
+                 totEncTime = "total encryption",
+                 avgEncTime = "avg encryption",
+                 totHomOpr = "total hom. operations",
+                 decTime = "decryption")
+variantDict <- c(`1` = "10 x ADD",
+                 `2` = "10 x MUL",
+                 `3` = "5x ADD + 5x MUL",
+                 `4` = "5x MUL + 5x ADD",
+                 `5` = "2x ADD + 7x MUL + 1x ADD",
+                 `6` = "1x MUL + 9x ADD",
+                 `7` = "1x ADD + 9x MUL",
+                 `8` = "1x ADD + 1x MULL ... total 10x",
+                 `9` = "3x ADD + 3x MUL + 4x ADD",
+                 `10` = "2x MUL + 5x ADD + 1x MUL + 2x ADD")
+```
+
+
+# Eksperyment 1
+
+```{r}
+results1 <- read.csv2("results1.csv", stringsAsFactors = T, dec = ".")
 ```
 
 ```{r}
-results %>%
+results1 %>%
   ##na.omit() %>% 
-  group_by(ptMod,variant,securityLevel,dist,numMults) %>% 
-  summarise(across(-nthRep, mean), .groups = "drop", na.rm=T) %>% 
-  mutate_if(is.numeric, round, 2) ->
-  df
+  ##group_by(ptMod,variant,securityLevel,dist,numMults) %>% 
+  ##summarise(across(-nthRep, mean), .groups = "drop", na.rm=T) %>% 
+  mutate_if(is.numeric, round, 2) %>% 
+  mutate(variant = as.factor(variant)) %>% 
+  do(.,.) ->
+  df1
 ```
 
-```{r}
-df %>% 
-  pivot_longer(keyGenTime:decTime,
-               names_to = "measure", values_to = "time",
-               values_drop_na = F)
-```
 ```{r fig.height=10, fig.width=10, warning=FALSE, message=FALSE}
-df %>% 
+df1 %>% 
   pivot_longer(keyGenTime:decTime,
                names_to = "measure", values_to = "time",
                values_drop_na = F) %>% 
+  mutate(measure=recode(measure, !!!measureDict)) %>% 
+  mutate(variant=recode(variant, !!!variantDict)) %>% 
   ggplot(aes(y = time,
-                 x = numMults,
-                 color = securityLevel)) +
-    facet_grid(measure ~ ptMod) +
+             x = numMults,
+             color = variant)) +
+    facet_grid(measure ~ .,
+               scales = "fixed") +
     geom_point(size = 1,
                position = position_jitter()) +
     geom_smooth(linewidth = 0.2) +
     coord_cartesian(ylim = c(0, NA)) +
+    ylab("time (ms)") +
     theme_dark()
 ```
 
 
+# Eksperyment 2
+
+```{r}
+results2 <- read.csv2("results2.csv", stringsAsFactors = T, dec = ".")
+```
+
+```{r}
+results2 %>%
+  ##na.omit() %>% 
+  ##group_by(ptMod,variant,securityLevel,dist,numMults) %>% 
+  ##summarise(across(-nthRep, mean), .groups = "drop", na.rm=T) %>% 
+  mutate_if(is.numeric, round, 2) %>% 
+  mutate(variant = as.factor(variant)) %>% 
+  do(.,.) ->
+  df2
+```
+
+```{r fig.height=10, fig.width=10, warning=FALSE, message=FALSE}
+df2 %>% 
+  pivot_longer(keyGenTime:decTime,
+               names_to = "measure", values_to = "time",
+               values_drop_na = F) %>% 
+  mutate(measure=recode(measure, !!!measureDict)) %>% 
+  mutate(variant=recode(variant, !!!variantDict)) %>% 
+  ggplot(aes(y = time,
+             x = dist,
+             color = variant)) +
+    facet_grid(measure ~ .,
+               scales = "fixed") +
+    geom_point(size = 1,
+               position = position_jitter()) +
+    geom_smooth(linewidth = 0.2,
+                method = "glm") +
+    coord_cartesian(ylim = c(0, NA)) +
+    ylab("time (ms)") +
+    theme_dark()
+```
 
 
+# Eksperyment 3
 
+```{r}
+results3 <- read.csv2("results3.csv", stringsAsFactors = T, dec = ".")
+```
+
+```{r}
+results3 %>%
+  ##na.omit() %>% 
+  ##group_by(ptMod,variant,securityLevel,dist,numMults) %>% 
+  ##summarise(across(-nthRep, mean), .groups = "drop", na.rm=T) %>% 
+  mutate_if(is.numeric, round, 2)  %>% 
+  mutate(variant = as.factor(variant)) %>% 
+  do(.,.) ->
+  df3
+```
+
+```{r fig.height=10, fig.width=10, warning=FALSE, message=FALSE}
+df3 %>% 
+  pivot_longer(keyGenTime:decTime,
+               names_to = "measure", values_to = "time",
+               values_drop_na = F) %>% 
+  mutate(measure=recode(measure, !!!measureDict)) %>% 
+  mutate(variant=recode(variant, !!!variantDict)) %>% 
+  ggplot(aes(y = time,
+             x = securityLevel,
+             color = variant)) +
+    facet_grid(measure ~ .,
+               scales = "free_y") +
+    geom_point(size = 1,
+               position = position_nudge()) +
+    geom_smooth(linewidth = 0.2) +
+    coord_cartesian(ylim = c(0, NA)) +
+    ylab("time (ms)") +
+    theme_dark()
+```
+
+
+# Eksperyment 4
+
+```{r}
+results4 <- read.csv2("results4.csv", stringsAsFactors = T, dec = ".")
+```
+
+```{r}
+results4 %>%
+  ##na.omit() %>% 
+  ##group_by(ptMod,variant,securityLevel,dist,numMults) %>% 
+  ##summarise(across(-nthRep, mean), .groups = "drop", na.rm=T) %>% 
+  mutate_if(is.numeric, round, 2)  %>% 
+  mutate(variant = as.factor(variant)) %>% 
+  mutate(ptMod = as.factor(ptMod)) %>% 
+  do(.,.) ->
+  df4
+```
+
+```{r fig.height=10, fig.width=10, warning=FALSE, message=FALSE}
+df4 %>% 
+  pivot_longer(keyGenTime:decTime,
+               names_to = "measure", values_to = "time",
+               values_drop_na = F) %>% 
+  mutate(measure=recode(measure, !!!measureDict)) %>% 
+  mutate(variant=recode(variant, !!!variantDict)) %>% 
+  ggplot(aes(y = time,
+             x = ptMod,
+             color = variant)) +
+    facet_grid(measure ~ .,
+               scales = "free_y") +
+    geom_point(size = 1,
+               position = position_nudge()) +
+    geom_smooth(linewidth = 0.2,
+                method = "glm",
+                mapping = aes(x = as.numeric(ptMod))) +
+    coord_cartesian(ylim = c(0, NA)) +
+    #scale_x_continuous(trans='log10') +
+    ylab("time (ms)") +
+    theme_dark()
+```

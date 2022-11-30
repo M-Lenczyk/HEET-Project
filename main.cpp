@@ -503,48 +503,39 @@ int main()
 	
 	// unsigned short int variant=1;//Wybrany wariant testu
 
-	std::ofstream resFile("../results.csv");//Plik z wynikami
+	std::ofstream resFile("../results4.csv");//Plik z wynikami
 	resFile << "ptMod;securityLevel;dist;numMults;variant;nthRep;"
 	 		<< "keyGenTime;keyGen4HMEkeys;totEncTime;avgEncTime;totHomOpr;decTime" <<std::endl;//Nagłówek w pliku z wynikami
 
 	//Testowane warianty parametrów
 	vector<long long unsigned int> testedModulusesInt = {
-		536903681,
-		375049
-		// ,
-		// 10002191,
-		// 75005101,
-		// 9750005347
+		536903681, 400051, 321312269, 7672487, 821312234893, 921312236417
 	};
 	vector<SecurityLevel> testedSecurityLevels = {
-		HEStd_128_classic,
-		HEStd_192_classic
-		// ,
-		// HEStd_256_classic
+		HEStd_128_classic
+		// , HEStd_192_classic, HEStd_256_classic
 	};
 	vector<float> testedDists = {
-		1.7
-		// , 3.2, 5.4
+		3.2
+		// , 5.4, 8.2, 30.6, 1.7, 0.8, 0.2, 0.01, 0.001
 	};
 	vector<unsigned int> testedNumMults = {
-		1, 2, 3, 4, 5
-		// , 6, 7, 8, 9, 10
+		// 1, 2,
+		3
+		// , 4, 5, 6, 7, 8, 9, 10
 	};
-	vector<unsigned short int> testedVariants = {
-		1, 2
-		// , 3, 4, 5, 6, 7, 8, 9, 10
-	};
-	unsigned int repeat = 3;//Powtórz eksperyment n razy z tymi samymi parametrami
+	vector<unsigned short int> testedVariants = {1, 2, 3, 8, 9};
+	unsigned int repeat = 5;//Powtórz eksperyment n razy z tymi samymi parametrami
 
 	int numToTest = testedModulusesInt.size() * testedSecurityLevels.size() * testedDists.size() *
 					 testedNumMults.size() * testedVariants.size() * repeat;
 	int numTested = 0;
-	for (auto &currModulus : testedModulusesInt)
-		for (auto &currSecLvl : testedSecurityLevels)
-			for (auto &currDist : testedDists)
-				for (auto &currNumMults : testedNumMults)
-					for (auto &currTestedVariant : testedVariants)
-						for (unsigned int rep=0; rep<repeat; rep++)
+	for (unsigned int rep=0; rep<repeat; rep++)
+		for (auto &currModulus : testedModulusesInt)
+			for (auto &currSecLvl : testedSecurityLevels)
+				for (auto &currDist : testedDists)
+					for (auto &currNumMults : testedNumMults)
+						for (auto &currTestedVariant : testedVariants)
 						{
 							std::cout << "Progress (total " << numToTest << ") tested: " << numTested;
 							numTested++;
