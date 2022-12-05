@@ -16,7 +16,7 @@ cmake_minimum_required (VERSION 3.5.1)
 ### After you run "make install" in your build directory, you can build your custom application.
 ### If you need your application to be linked statically, then run "cmake .. -DBUILD_STATIC=ON"
 
-project(demo CXX)
+project(HEET-Project CXX)
 set(CMAKE_CXX_STANDARD 11)
 option( BUILD_STATIC "Set to ON to include static versions of the library" OFF)
 
@@ -47,9 +47,18 @@ endif()
 ### EXAMPLE:
 ### add_executable( test demo-simple-example.cpp )
 
+
 file(GLOB SOURCES
    utils.cpp
 )
 
 add_executable(main main.cpp)
-add_executable(evaluation evaluation.cpp)
+
+find_package(SFML 2.5 
+  COMPONENTS 
+    system window graphics network audio REQUIRED
+  )
+
+add_executable(sfml EXCLUDE_FROM_ALL sfml_main.cpp)
+target_link_libraries(sfml sfml-graphics)
+install(TARGETS sfml DESTINATION bin)

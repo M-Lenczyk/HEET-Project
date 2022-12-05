@@ -99,22 +99,22 @@ class vector_diff
  
     std::string to_string()
     {
-        return "distance between vectors:\n" + std::to_string(this->distance) + "\n" +
-        "boolean distance between vectors:\n" + std::to_string(this->boolean_distance) + "\n" +
-        "mse between vectors:\n" + std::to_string(this->mse) +
+        return "distance between vectors: " + std::to_string(this->distance) + "\n" +
+        "boolean distance between vectors: " + std::to_string(this->boolean_distance) + "\n" +
+        "mse between vectors: " + std::to_string(this->mse) +
         "\n";
     }
 };
 
-vector_diff vector_distance(const std::vector<int> &v1,const std::vector<int> &v2);
+vector_diff vector_distance(std::vector<int64_t> &v1,std::vector<int64_t> &v2);
 
-vector_diff vector_boolean_distance(const std::vector<int> &v1,const  std::vector<int> &v2);
+vector_diff vector_boolean_distance(std::vector<int64_t> &v1, std::vector<int64_t> &v2);
 
-vector_diff vector_mse(const std::vector<int> &v1,const  std::vector<int> &v2);
+vector_diff vector_mse(std::vector<int64_t> &v1, std::vector<int64_t> &v2);
 
-vector_diff vector_statistic_combined(const std::vector<int> &v1,const  std::vector<int> &v2);
+vector_diff vector_statistic_combined(std::vector<int64_t> &v1, std::vector<int64_t> &v2);
 
-vector_diff vector_distance(const std::vector<int> &v1,const std::vector<int> &v2)
+vector_diff vector_distance(std::vector<int64_t> &v1,std::vector<int64_t> &v2)
 {
     if(v1.size() != v2.size())throw vectorLengnthDifferentException();
 
@@ -129,7 +129,7 @@ vector_diff vector_distance(const std::vector<int> &v1,const std::vector<int> &v
     return diff;
 }
 
-vector_diff vector_boolean_distance(const std::vector<int> &v1,const std::vector<int> &v2)
+vector_diff vector_boolean_distance(std::vector<int64_t> &v1,std::vector<int64_t> &v2)
 {
     if(v1.size() != v2.size())throw vectorLengnthDifferentException();
 
@@ -146,7 +146,7 @@ vector_diff vector_boolean_distance(const std::vector<int> &v1,const std::vector
     return diff;
 }
 
-vector_diff vector_mse(const std::vector<int> &v1,const std::vector<int> &v2)
+vector_diff vector_mse(std::vector<int64_t> &v1,std::vector<int64_t> &v2)
 {
     if(v1.size() != v2.size())throw vectorLengnthDifferentException();
 
@@ -162,7 +162,7 @@ vector_diff vector_mse(const std::vector<int> &v1,const std::vector<int> &v2)
     return diff;
 }
 
-vector_diff vector_statistic_combined(const std::vector<int> &v1,const  std::vector<int> &v2)
+vector_diff vector_statistic_combined(std::vector<int64_t> &v1, std::vector<int64_t> &v2)
 {
     vector_diff vd1,vd2,vd3,vd_combined;
     vd1 = vector_distance(v1,v2);
