@@ -131,6 +131,15 @@ vector_diff vector_distance(std::vector<int64_t> &v1,std::vector<int64_t> &v2)
 
 vector_diff vector_boolean_distance(std::vector<int64_t> &v1,std::vector<int64_t> &v2)
 {
+    //std::cout<<"---------------BEGIN----------------"<<std::endl;
+    //std::cout<<"-------------------------------"<<std::endl;
+   /* for(int i=0;i<(int)v1.size();i++)
+    {
+        std::cout<<v1[i]<< " <->";
+        std::cout<<v1[2];
+        std::cout<<std::endl;
+    }*/
+
     if(v1.size() != v2.size())throw vectorLengnthDifferentException();
 
     double boolean_distance=0;
@@ -138,11 +147,12 @@ vector_diff vector_boolean_distance(std::vector<int64_t> &v1,std::vector<int64_t
     {
         if(v1[i]!=v2[i])boolean_distance++;
     }
-    boolean_distance/= double(v1.size());
 
     vector_diff diff;
     diff.boolean_distance = boolean_distance;
-    std::cout<<diff.boolean_distance<<std::endl;
+    /*std::cout<<">>>>>>>>>>>: "<<diff.boolean_distance<<std::endl;
+    std::cout<<"---------------END----------------"<<std::endl;*/
+    
     return diff;
 }
 
@@ -174,4 +184,26 @@ vector_diff vector_statistic_combined(std::vector<int64_t> &v1, std::vector<int6
     vd_combined.mse = vd3.mse;
 
     return vd_combined;
+}
+
+template <typename T>
+std::shared_ptr<std::vector<T>> sum_of_vectors(const std::vector<T> &v1,const std::vector<T> &v2 )
+{
+    std::shared_ptr<std::vector<T>> result = std::make_shared<std::vector<T>>();
+
+    for(int i=0;i<(int)v1.size();i++)
+    {
+        result->push_back(v1[i]*v2[i]);
+    }
+    return result;
+}
+
+template <typename T>
+void print_vector(std::vector<T> &v1)
+{
+    for(int i=0;i<(int)v1.size();i++)
+    {
+        std::cout<<v1[i]<<' ';
+    }
+    std::cout<<std::endl;
 }

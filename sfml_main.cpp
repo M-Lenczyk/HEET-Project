@@ -9,6 +9,10 @@
 #include <thread>
 #include <vector>
 
+#include <limits>
+#include <ctime>
+#include <cstdlib>
+
 #include <bits/stdc++.h>
 
 #include <SFML/Graphics.hpp>
@@ -74,7 +78,7 @@ struct parameterBlock
    		this->numMults = _numMults;//3
    		this->numKeyswitches = 0;
     	this->mode = OPTIMIZED;
-   		this->maxDepth = 3;//3
+   		this->maxDepth = 8;//3
    		this->relinWindow = 0;
     	this->dcrtBits = 60;
     	this->n = 0;
@@ -121,6 +125,8 @@ Plaintext decrypt(TimeVar &t,
 //Funkcja główna do przeprowadzania pojedynczego eksperymentu na datasecie, zestawie parametrów i wybranego wariantu operacji homomorficznych
 void experiment(parameterBlock p1, std::vector<std::vector<int64_t>> datasetVector, unsigned short int variant)
 {
+	int num_experiments = 10;
+
 	TimeVar t; //Obiekt ktory bedzie zliczal czas.
   	double processingTime(0.0);//Zmienna ktora bedzie przechowywac czas zliczony przez obiekt t klasy TimeVar
   	
@@ -164,24 +170,43 @@ void experiment(parameterBlock p1, std::vector<std::vector<int64_t>> datasetVect
 	processingTime = TOC(t);//Moment zakonczenia mierzenia czasu i przypisania do zmiennej. Czas dla obiektu t jest zresetowany automatycznie.
   	std::cout<<"\nSource key generation time: " <<processingTime<<"ms"<<std::endl;
 	
+	
 	//GENEROWANIE KLUCZY DLA MNOZENIA HOMOMORFICZNEGO
 	TIC(t);//Moment rozpoczecia mierzenia czasu.
 	cryptoContext->EvalMultKeysGen(keyPair.secretKey);//Generowanie kluczy wymaganych do operacji mnozenia homomorficznego na podstawie klucza danych źródłowych.
 	processingTime = TOC(t);//Moment zakończenia mierzenia czasu.
-  	std::cout<<"Key generation time for homomorphic multiplication evaluation keys: "<<processingTime<<"ms";
 	
-    int num_pixels = 256;
+  	std::cout<<"Key generation time for homomorphic multiplication evaluation keys: "<<processingTime<<"ms"<<std::endl;
+	
+
+    int64_t num_pixels = 5;
     std::vector<int64_t> dataset;
     
 
-	for(int i=0;i<num_pixels;i++)
+	for(int64_t i=0;i<num_pixels;i++)
     {
-        dataset.push_back(i%256);
-        dataset.push_back(i%256);
-        dataset.push_back(i%256);
+		int64_t max =  123456;//std::numeric_limits<int32_t>::max();
+		//int64_t max = 107387000;
+        dataset.push_back(max-i);
     }
 
-    std::vector<int64_t> addition_dataset(dataset.size(), 20);
+    //std::vector<int64_t> addition_dataset(dataset.size(), 20);
+	std::vector<int64_t> addition_dataset;
+
+	for(int i=0;i<(int)dataset.size();i++)
+	{
+		addition_dataset.push_back((int64_t)rand()%2+1);
+	}
+
+	std::vector<std::shared_ptr<std::vector<int64_t>>> predicted_results;
+
+	std::cout<<"size: "<<(int)dataset.size()<<std::endl;
+	predicted_results.push_back(sum_of_vectors(dataset,addition_dataset));
+
+	for(int i=1;i<num_experiments;i++)
+	{
+		predicted_results.push_back(sum_of_vectors(*(predicted_results[i-1]) , addition_dataset));
+	}
 
     vector<Plaintext> plaintextDatasetVector;
     vector<Plaintext> addPlaintextDatasetVector;
@@ -196,38 +221,81 @@ void experiment(parameterBlock p1, std::vector<std::vector<int64_t>> datasetVect
 	ciphertexts.push_back(cryptoContext->Encrypt(keyPair.publicKey, plaintextDatasetVector[0]));
 	addCiphertexts.push_back(cryptoContext->Encrypt(keyPair.publicKey, addPlaintextDatasetVector[0]));
 
-    
-    //std::vector<auto> storedVectors();
-	std::vector<float> operations = {0.5};
 
     std::vector<Ciphertext<DCRTPoly>> results;
 	std::vector<std::vector<int64_t>> decryptedResults;
 
-    int num_experiments = 10000;
-    for(int i=0;i<num_experiments;i++)
+	auto vector_after_addition = cryptoContext->EvalMult(ciphertexts[0], addCiphertexts[0]);
+	//auto vector_after_subtraction = cryptoContext->EvalSub(vector_after_addition, addCiphertexts[0]);	
+	results.push_back(vector_after_addition);
+
+    
+    for(int i=1;i<num_experiments;i++)
     {
 		std::cout<<"test:"<<i<<std::endl;
-		auto vector_after_addition = cryptoContext->EvalAdd(ciphertexts[0], addCiphertexts[0]);
-		results.push_back(cryptoContext->EvalSub(vector_after_addition, addCiphertexts[0]));
+		vector_after_addition = cryptoContext->EvalMult(vector_after_addition, addCiphertexts[0]);
+		//vector_after_subtraction = cryptoContext->EvalSub(vector_after_addition, addCiphertexts[0]);
+		results.push_back(vector_after_addition);
     }
+	std::cout<<"size size encrypted: "<<results.size()<<std::endl;
 
 	for(auto &cipher : results)
 	{
 		decryptedResults.push_back(decrypt(t, cryptoContext, keyPair, cipher, plaintextDatasetVector)->GetPackedValue());
 	}
+	std::cout<<"size decry: "<<decryptedResults.size()<<std::endl;
 
 	auto input_vector = plaintextDatasetVector[0]->GetPackedValue();
 
-	for(int i = num_experiments-10; i < num_experiments; i++)
+	std::cout<<"size pred: "<<predicted_results.size()<<std::endl;
+	
+
+	std::cout<<"-----------------ORIG----------------"<<std::endl;
+	print_vector(dataset);
+	std::cout<<"---------------------------------"<<std::endl;
+
+	for(int i = 0; i < num_experiments-1; i++)
 	{
-		std::cout<<vector_statistic_combined(input_vector,decryptedResults[i]).to_string();
+		std::cout<<"iteration: "<<i<<std::endl;
+		print_vector(*(predicted_results[i]));
+		std::cout<<"+";print_vector(addition_dataset);
+		print_vector(decryptedResults[i]);
+		std::cout<<"---------------------------------"<<std::endl;
+		std::cout<<vector_statistic_combined(*(predicted_results[i]),decryptedResults[i]).to_string();
+		std::cout<<"---------------------------------"<<std::endl;
 	}		
 }
 
+uint64_t modulusPicker(uint64_t approxDesiredModulus = 536903681, uint64_t cyclotomicOrder = 65536, bool debug=0)
+	{	
+		//Rozmiar modulusa w bitach. Na przykład: 
+		//dla modulusa = 15 mamu: ceil(log2(15)) = ceil(3.9) = 4 
+		//dla modulusa = 16 mamy ceil(log2(16)) = ceil(4.0) = 4 
+		//dla modulusa = 17 mamy ceil(log2(17)) = ceil(4.08) = 5
+		unsigned short bits = ceil(log2(approxDesiredModulus));
+		
+		//Wybór pierwszej liczby pierwszego która spełnia nasze kryteria i wymagania PALISADE
+		//To jest nasz rzeczywisty modulus
+    	auto viablePrime = FirstPrime<NativeInteger>(bits-1, 2*cyclotomicOrder);
+    	
+    	//Konwersja wybranego modulusa do formatu akceptowanego przez zestaw parametrów
+    	uint64_t plaintextModulus = reinterpret_cast<uint64_t &>(viablePrime);
+    	
+    	if(debug)
+    	{
+    		std::cout<<"Desired modulus: "<<approxDesiredModulus<<std::endl;
+	    	std::cout<<"Number of bits: "<<bits<<std::endl;
+	    	std::cout<<"Satisfactory prime: "<<viablePrime<<" Type: "<<typeid(viablePrime).name()<<std::endl;
+	    	std::cout<<"Respective modulus: "<<plaintextModulus<<" Type: "<<typeid(plaintextModulus).name()<<std::endl;
+		}
+    	return plaintextModulus;
+	}
+
 int main() 
 {
-	parameterBlock p1(536903681, HEStd_128_classic, 3.2, 3);
-	
+	srand(time(NULL));
+	parameterBlock p1(modulusPicker(1073870000000), HEStd_128_classic, 3.2, 16);
+
 	parameterBlock p2(375049, HEStd_128_classic, 3.2, 3);
 	parameterBlock p3(10002191, HEStd_128_classic, 3.2, 3);
 	parameterBlock p4(75005101, HEStd_128_classic, 3.2, 3);
@@ -278,4 +346,5 @@ int main()
 	unsigned short int variant=10;//Wybrany wariant testu
 	experiment(p1,datasetVector,variant);
 	//TODO: ... more experiments
+	return 0;
 }
