@@ -7,6 +7,7 @@ output:
     toc_collapsed: true
     toc_depth: 3
     number_sections: false
+    code_folding: hide
     theme: lumen
 ---
 
@@ -36,7 +37,9 @@ variantDict <- c(`1` = "10 x ADD",
 ```
 
 
-# Eksperyment 1
+# Eksperymenty pojedyncze {.tabset .tabset-fade .tabset-pills}
+
+## Eksperyment 1
 
 ```{r}
 results1 <- read.csv2("results1.csv", stringsAsFactors = T, dec = ".")
@@ -74,7 +77,7 @@ df1 %>%
 ```
 
 
-# Eksperyment 2
+## Eksperyment 2
 
 ```{r}
 results2 <- read.csv2("results2.csv", stringsAsFactors = T, dec = ".")
@@ -113,7 +116,7 @@ df2 %>%
 ```
 
 
-# Eksperyment 3
+## Eksperyment 3
 
 ```{r}
 results3 <- read.csv2("results3.csv", stringsAsFactors = T, dec = ".")
@@ -151,7 +154,7 @@ df3 %>%
 ```
 
 
-# Eksperyment 4
+## Eksperyment 4
 
 ```{r}
 results4 <- read.csv2("results4.csv", stringsAsFactors = T, dec = ".")
@@ -191,3 +194,4 @@ df4 %>%
     ylab("time (ms)") +
     theme_dark()
 ```
+

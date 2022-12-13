@@ -503,13 +503,10 @@ int main()
 	
 	// unsigned short int variant=1;//Wybrany wariant testu
 
-	std::ofstream resFile("../results4.csv");//Plik z wynikami
-	resFile << "ptMod;securityLevel;dist;numMults;variant;nthRep;"
-	 		<< "keyGenTime;keyGen4HMEkeys;totEncTime;avgEncTime;totHomOpr;decTime" <<std::endl;//Nagłówek w pliku z wynikami
-
 	//Testowane warianty parametrów
 	vector<long long unsigned int> testedModulusesInt = {
-		536903681, 400051, 321312269, 7672487, 821312234893, 921312236417
+		536903681, 400051, 321312269
+		// , 7672487, 821312234893, 921312236417
 	};
 	vector<SecurityLevel> testedSecurityLevels = {
 		HEStd_128_classic
@@ -520,12 +517,38 @@ int main()
 		// , 5.4, 8.2, 30.6, 1.7, 0.8, 0.2, 0.01, 0.001
 	};
 	vector<unsigned int> testedNumMults = {
-		// 1, 2,
-		3
-		// , 4, 5, 6, 7, 8, 9, 10
+		1, 2, 3, 4, 6, 8, 10
+		// , 15, 20
 	};
 	vector<unsigned short int> testedVariants = {1, 2, 3, 8, 9};
 	unsigned int repeat = 5;//Powtórz eksperyment n razy z tymi samymi parametrami
+
+	std::string  resFileName = "../results5";//Plik z wynikami
+	vector<std::ofstream> resFiles;
+
+	if (repeat == 1)
+	{
+		resFiles.emplace_back(std::ofstream{ resFileName + ".csv" });
+		resFiles[0] << "ptMod;securityLevel;dist;numMults;variant;nthRep;"
+			<< "keyGenTime;keyGen4HMEkeys;totEncTime;avgEncTime;totHomOpr;decTime" <<std::endl;
+	}
+	else
+	{
+		for (unsigned int i = 0; i < repeat; i++)
+		{
+			int len = ceil(log10(repeat));
+			std::string str_i = std::to_string(i);
+			resFiles.emplace_back(std::ofstream{
+					resFileName + "-part" +
+					std::string(len - str_i.length(), '0') + str_i +
+					".csv"
+				});
+			resFiles[i] << "ptMod;securityLevel;dist;numMults;variant;nthRep;"
+				<< "keyGenTime;keyGen4HMEkeys;totEncTime;avgEncTime;totHomOpr;decTime" <<std::endl;//Nagłówek w pliku z wynikami
+		}
+		
+	}
+
 
 	int numToTest = testedModulusesInt.size() * testedSecurityLevels.size() * testedDists.size() *
 					 testedNumMults.size() * testedVariants.size() * repeat;
@@ -537,10 +560,9 @@ int main()
 					for (auto &currNumMults : testedNumMults)
 						for (auto &currTestedVariant : testedVariants)
 						{
-							std::cout << "Progress (total " << numToTest << ") tested: " << numTested;
-							numTested++;
 							parameterBlock params(modulusPicker(currModulus), currSecLvl, currDist, currNumMults);
-							experiment(params,datasetVector,currTestedVariant,&resFile,rep);
+							experiment(params,datasetVector,currTestedVariant,&resFiles[rep],rep);
+							std::cout << "Progress (total " << numToTest << ") tested: " << ++numTested << std::endl;
 						}
 
 	
