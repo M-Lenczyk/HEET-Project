@@ -21,6 +21,8 @@ set(CMAKE_CXX_STANDARD 11)
 option( BUILD_STATIC "Set to ON to include static versions of the library" OFF)
 
 find_package(Palisade)
+#find_package(CryptoPP REQUIRED)
+
 
 set( CMAKE_CXX_FLAGS ${PALISADE_CXX_FLAGS} )
 
@@ -29,6 +31,10 @@ include_directories( ${PALISADE_INCLUDE} )
 include_directories( ${PALISADE_INCLUDE}/third-party/include )
 include_directories( ${PALISADE_INCLUDE}/core )
 include_directories( ${PALISADE_INCLUDE}/pke )
+
+
+include_directories( ${CRYPTOPP_INCLUDE} )
+
 ### add directories for other PALISADE modules as needed for your project
 
 link_directories( ${PALISADE_LIBDIR} )
