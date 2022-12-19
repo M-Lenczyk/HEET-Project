@@ -10,7 +10,28 @@
 #include <crypto++/osrng.h>
 #include <crypto++/base64.h>
 
-std::string encrypt(const std::string& input, const std::vector<uint8_t>& key, const std::vector<uint8_t>& iv) {
+std::string int_vector_to_string(const std::vector<unsigned short> &v1)
+{
+    std::string res = "";
+    for(const auto &x : v1)
+    {
+        res += (char)x;
+    }
+    return res;
+}
+
+std::vector<unsigned short> string_to_int_vector(const std::string &s)
+{
+    std::vector<unsigned short> res;
+    for(const auto &x : s)
+    {
+        res.push_back((unsigned short)x);
+    }
+    return res;
+}
+
+std::string encrypt(const std::string& input, const std::vector<uint8_t>& key, const std::vector<uint8_t>& iv) 
+{
     std::string cipher;
     
     auto aes = CryptoPP::AES::Encryption(key.data(), key.size());
@@ -29,7 +50,8 @@ std::string encrypt(const std::string& input, const std::vector<uint8_t>& key, c
     return cipher;
 }
 
-std::string decrypt(const std::string& cipher_text, const std::vector<uint8_t>& key, const std::vector<uint8_t>& iv) {
+std::string decrypt(const std::string& cipher_text, const std::vector<uint8_t>& key, const std::vector<uint8_t>& iv) 
+{
     std::string plain_text;
     
     auto aes = CryptoPP::AES::Decryption(key.data(), key.size());
@@ -49,8 +71,9 @@ std::string decrypt(const std::string& cipher_text, const std::vector<uint8_t>& 
     return plain_text;
 }
 
-int main() {
-	
+int main()
+{
+
 	//CryptoPP::ThreadUserTimer timerBase(CryptoPP::TimerBase::Unit unit = CryptoPP::TimerBase::MILLISECONDS, bool stuckAtZero = false);
     double elapsedTime;
     
