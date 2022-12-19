@@ -32,9 +32,6 @@ include_directories( ${PALISADE_INCLUDE}/third-party/include )
 include_directories( ${PALISADE_INCLUDE}/core )
 include_directories( ${PALISADE_INCLUDE}/pke )
 
-
-include_directories( ${CRYPTOPP_INCLUDE} )
-
 ### add directories for other PALISADE modules as needed for your project
 
 link_directories( ${PALISADE_LIBDIR} )
@@ -60,11 +57,6 @@ file(GLOB SOURCES
 
 add_executable(main main.cpp)
 
-find_package(SFML 2.5 
-  COMPONENTS 
-    system window graphics network audio REQUIRED
-  )
 
-add_executable(sfml EXCLUDE_FROM_ALL sfml_main.cpp)
-target_link_libraries(sfml sfml-graphics)
-install(TARGETS sfml DESTINATION bin)
+add_executable(test2 EXCLUDE_FROM_ALL test2.cpp)
+install(TARGETS test2 DESTINATION bin)

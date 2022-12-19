@@ -30,8 +30,7 @@ std::vector<unsigned short> string_to_int_vector(const std::string &s)
     return res;
 }
 
-std::string encrypt(const std::string& input, const std::vector<uint8_t>& key, const std::vector<uint8_t>& iv) 
-{
+std::string encrypt(const std::string& input, const std::vector<uint8_t>& key, const std::vector<uint8_t>& iv) {
     std::string cipher;
     
     auto aes = CryptoPP::AES::Encryption(key.data(), key.size());
