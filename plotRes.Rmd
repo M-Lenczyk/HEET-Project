@@ -11,13 +11,13 @@ output:
     theme: lumen
 ---
 
-```{r, warning=F, message=F}
+```{r libraries, warning=F, message=F}
 library(dplyr)
 library(ggplot2)
 library(tidyr)
 ```
 
-```{r}
+```{r dictionaries}
 measureDict <- c(keyGenTime = "key generation",
                  keyGen4HMEkeys = "key gen 4 HME",
                  totEncTime = "total encryption",
@@ -42,7 +42,7 @@ variantDict <- c(`1` = "10 x ADD",
 ## Eksperyment 1
 
 ```{r}
-results1 <- read.csv2("results1.csv", stringsAsFactors = T, dec = ".")
+results1 <- read.csv2("data/results1.csv", stringsAsFactors = T, dec = ".")
 ```
 
 ```{r}
@@ -50,7 +50,7 @@ results1 %>%
   ##na.omit() %>% 
   ##group_by(ptMod,variant,securityLevel,dist,numMults) %>% 
   ##summarise(across(-nthRep, mean), .groups = "drop", na.rm=T) %>% 
-  mutate_if(is.numeric, round, 2) %>% 
+  mutate_if(is.numeric, round, 3) %>% 
   mutate(variant = as.factor(variant)) %>% 
   do(.,.) ->
   df1
@@ -67,12 +67,13 @@ df1 %>%
              x = numMults,
              color = variant)) +
     facet_grid(measure ~ .,
-               scales = "fixed") +
+               scales = "free_y") +
     geom_point(size = 1,
                position = position_jitter()) +
     geom_smooth(linewidth = 0.2) +
     coord_cartesian(ylim = c(0, NA)) +
     ylab("time (ms)") +
+    ggtitle("Time to max multiplication depth") + 
     theme_dark()
 ```
 
@@ -80,7 +81,7 @@ df1 %>%
 ## Eksperyment 2
 
 ```{r}
-results2 <- read.csv2("results2.csv", stringsAsFactors = T, dec = ".")
+results2 <- read.csv2("data/results2.csv", stringsAsFactors = T, dec = ".")
 ```
 
 ```{r}
@@ -88,7 +89,7 @@ results2 %>%
   ##na.omit() %>% 
   ##group_by(ptMod,variant,securityLevel,dist,numMults) %>% 
   ##summarise(across(-nthRep, mean), .groups = "drop", na.rm=T) %>% 
-  mutate_if(is.numeric, round, 2) %>% 
+  mutate_if(is.numeric, round, 3) %>% 
   mutate(variant = as.factor(variant)) %>% 
   do(.,.) ->
   df2
@@ -105,13 +106,14 @@ df2 %>%
              x = dist,
              color = variant)) +
     facet_grid(measure ~ .,
-               scales = "fixed") +
+               scales = "free_y") +
     geom_point(size = 1,
                position = position_jitter()) +
     geom_smooth(linewidth = 0.2,
                 method = "glm") +
     coord_cartesian(ylim = c(0, NA)) +
     ylab("time (ms)") +
+    ggtitle("Time to noise distribution") + 
     theme_dark()
 ```
 
@@ -119,7 +121,7 @@ df2 %>%
 ## Eksperyment 3
 
 ```{r}
-results3 <- read.csv2("results3.csv", stringsAsFactors = T, dec = ".")
+results3 <- read.csv2("data/results3.csv", stringsAsFactors = T, dec = ".")
 ```
 
 ```{r}
@@ -127,7 +129,7 @@ results3 %>%
   ##na.omit() %>% 
   ##group_by(ptMod,variant,securityLevel,dist,numMults) %>% 
   ##summarise(across(-nthRep, mean), .groups = "drop", na.rm=T) %>% 
-  mutate_if(is.numeric, round, 2)  %>% 
+  mutate_if(is.numeric, round, 3)  %>% 
   mutate(variant = as.factor(variant)) %>% 
   do(.,.) ->
   df3
@@ -150,6 +152,7 @@ df3 %>%
     geom_smooth(linewidth = 0.2) +
     coord_cartesian(ylim = c(0, NA)) +
     ylab("time (ms)") +
+    ggtitle("Time to security level") + 
     theme_dark()
 ```
 
@@ -157,7 +160,7 @@ df3 %>%
 ## Eksperyment 4
 
 ```{r}
-results4 <- read.csv2("results4.csv", stringsAsFactors = T, dec = ".")
+results4 <- read.csv2("data/results4.csv", stringsAsFactors = T, dec = ".")
 ```
 
 ```{r}
@@ -165,7 +168,7 @@ results4 %>%
   ##na.omit() %>% 
   ##group_by(ptMod,variant,securityLevel,dist,numMults) %>% 
   ##summarise(across(-nthRep, mean), .groups = "drop", na.rm=T) %>% 
-  mutate_if(is.numeric, round, 2)  %>% 
+  mutate_if(is.numeric, round, 3)  %>% 
   mutate(variant = as.factor(variant)) %>% 
   mutate(ptMod = as.factor(ptMod)) %>% 
   do(.,.) ->
@@ -192,6 +195,214 @@ df4 %>%
     coord_cartesian(ylim = c(0, NA)) +
     #scale_x_continuous(trans='log10') +
     ylab("time (ms)") +
+    ggtitle("Time to plaintext modulus") + 
     theme_dark()
 ```
 
+
+# Eksperymenty mieszane {.tabset .tabset-fade .tabset-pills}
+
+## Eksperyment 5
+
+```{r}
+results5 <- read.csv2("data/results5.csv", stringsAsFactors = T, dec = ".")
+```
+
+```{r}
+results5 %>%
+  ##na.omit() %>% 
+  ##group_by(ptMod,variant,securityLevel,dist,numMults) %>% 
+  ##summarise(across(-nthRep, mean), .groups = "drop", na.rm=T) %>% 
+  mutate_if(is.numeric, round, 3)  %>% 
+  mutate(variant = as.factor(variant)) %>% 
+  #mutate(ptMod = as.factor(ptMod)) %>% 
+  do(.,.) ->
+  df5
+```
+
+```{r fig.height=10, fig.width=10, warning=FALSE, message=FALSE}
+df5 %>% 
+  pivot_longer(keyGenTime:decTime,
+               names_to = "measure", values_to = "time",
+               values_drop_na = F) %>% 
+  mutate(measure=recode(measure, !!!measureDict)) %>% 
+  mutate(variant=recode(variant, !!!variantDict)) %>% 
+  ggplot(aes(y = time,
+             x = numMults,
+             color = variant)) +
+    facet_grid(measure ~ ptMod,
+               scales = "free_y") +
+    geom_point(size = 1,
+               position = position_nudge()) +
+    geom_smooth(linewidth = 0.2,
+                method = "glm") +
+    coord_cartesian(ylim = c(0, NA)) +
+    ylab("time (ms)") +
+    ggtitle("Time to plaintext modulus and numMults") + 
+    theme_dark()
+```
+
+
+## Eksperyment 6
+
+```{r}
+results6 <- read.csv2("data/results6.csv", stringsAsFactors = T, dec = ".")
+```
+
+```{r}
+results6 %>%
+  ##na.omit() %>% 
+  ##group_by(ptMod,variant,securityLevel,dist,numMults) %>% 
+  ##summarise(across(-nthRep, mean), .groups = "drop", na.rm=T) %>% 
+  mutate_if(is.numeric, round, 3)  %>% 
+  mutate(variant = as.factor(variant)) %>% 
+  #mutate(ptMod = as.factor(ptMod)) %>% 
+  do(.,.) ->
+  df6
+```
+
+```{r fig.height=10, fig.width=10, warning=FALSE, message=FALSE}
+df6 %>% 
+  pivot_longer(keyGenTime:decTime,
+               names_to = "measure", values_to = "time",
+               values_drop_na = F) %>% 
+  mutate(measure=recode(measure, !!!measureDict)) %>% 
+  mutate(variant=recode(variant, !!!variantDict)) %>% 
+  ggplot(aes(y = time,
+             x = dist,
+             color = variant)) +
+    facet_grid(measure ~ ptMod,
+               scales = "free_y") +
+    geom_point(size = 1,
+               position = position_nudge()) +
+    geom_smooth(linewidth = 0.2,
+                method = "glm") +
+    coord_cartesian(ylim = c(0, NA)) +
+    ylab("time (ms)") +
+    ggtitle("Time to plaintext modulus and dist") + 
+    theme_dark()
+```
+
+
+## Eksperyment 7
+
+```{r}
+results7 <- read.csv2("data/results7.csv", stringsAsFactors = T, dec = ".")
+```
+
+```{r}
+results7 %>%
+  ##na.omit() %>% 
+  ##group_by(ptMod,variant,securityLevel,dist,numMults) %>% 
+  ##summarise(across(-nthRep, mean), .groups = "drop", na.rm=T) %>% 
+  mutate_if(is.numeric, round, 3)  %>% 
+  mutate(variant = as.factor(variant)) %>% 
+  do(.,.) ->
+  df7
+```
+
+```{r fig.height=10, fig.width=10, warning=FALSE, message=FALSE}
+df7 %>% 
+  pivot_longer(keyGenTime:decTime,
+               names_to = "measure", values_to = "time",
+               values_drop_na = F) %>% 
+  mutate(measure=recode(measure, !!!measureDict)) %>% 
+  mutate(variant=recode(variant, !!!variantDict)) %>% 
+  ggplot(aes(y = time,
+             x = numMults,
+             color = variant)) +
+    facet_grid(measure ~ dist,
+               scales = "free_y") +
+    geom_point(size = 1,
+               position = position_nudge()) +
+    geom_smooth(linewidth = 0.2,
+                method = "glm") +
+    coord_cartesian(ylim = c(0, NA)) +
+    ylab("time (ms)") +
+    ggtitle("Time to noise distribution and numMults") + 
+    theme_dark()
+```
+
+
+## Eksperyment 8
+
+```{r}
+results8 <- read.csv2("data/results8.csv", stringsAsFactors = T, dec = ".")
+```
+
+```{r}
+results8 %>%
+  ##na.omit() %>% 
+  ##group_by(ptMod,variant,securityLevel,dist,numMults) %>% 
+  ##summarise(across(-nthRep, mean), .groups = "drop", na.rm=T) %>% 
+  mutate_if(is.numeric, round, 3)  %>% 
+  mutate(variant = as.factor(variant)) %>% 
+  do(.,.) ->
+  df8
+```
+
+```{r fig.height=10, fig.width=10, warning=FALSE, message=FALSE}
+df8 %>% 
+  pivot_longer(keyGenTime:decTime,
+               names_to = "measure", values_to = "time",
+               values_drop_na = F) %>% 
+  mutate(measure=recode(measure, !!!measureDict)) %>% 
+  mutate(variant=recode(variant, !!!variantDict)) %>% 
+  ggplot(aes(y = time,
+             x = numMults,
+             color = variant)) +
+    facet_grid(measure ~ securityLevel,
+               scales = "free_y") +
+    geom_point(size = 1,
+               position = position_nudge()) +
+    geom_smooth(linewidth = 0.2,
+                method = "glm") +
+    coord_cartesian(ylim = c(0, NA)) +
+    ylab("time (ms)") +
+    ggtitle("Time to security level and numMults") + 
+    theme_dark()
+```
+
+
+## Eksperyment 9
+
+```{r}
+results9 <- read.csv2("data/results9.csv", stringsAsFactors = T, dec = ".")
+```
+
+```{r}
+results9 %>%
+  ##na.omit() %>% 
+  ##group_by(ptMod,variant,securityLevel,dist,numMults) %>% 
+  ##summarise(across(-nthRep, mean), .groups = "drop", na.rm=T) %>% 
+  mutate_if(is.numeric, round, 3)  %>% 
+  mutate(variant = as.factor(variant)) %>% 
+  mutate(ptMod = as.factor(ptMod)) %>% 
+  do(.,.) ->
+  df9
+```
+
+```{r fig.height=10, fig.width=10, warning=FALSE, message=FALSE}
+df9 %>% 
+  pivot_longer(keyGenTime:decTime,
+               names_to = "measure", values_to = "time",
+               values_drop_na = F) %>% 
+  mutate(measure=recode(measure, !!!measureDict)) %>% 
+  mutate(variant=recode(variant, !!!variantDict)) %>% 
+  ggplot(aes(y = time,
+             x = ptMod,
+             color = variant)) +
+    facet_grid(measure ~ securityLevel,
+               scales = "free_y") +
+    geom_point(size = 1,
+               position = position_nudge()) +
+    geom_smooth(linewidth = 0.2,
+                method = "glm",
+                mapping = aes(x = as.numeric(ptMod))) +
+    coord_cartesian(ylim = c(0, NA)) +
+    #scale_x_continuous(trans='log10') + 
+    ylab("time (ms)") +
+    ggtitle("Time to security level and plaintext modulus") + 
+    theme_dark() + 
+    theme(axis.text.x = element_text(angle = -45, hjust = 0))
+```

@@ -127,7 +127,7 @@ void decrypt(TimeVar &t,CryptoContext<DCRTPoly> &cryptoContext,
 
 
 //Funkcja główna do przeprowadzania pojedynczego eksperymentu na datasecie, zestawie parametrów i wybranego wariantu operacji homomorficznych
-void experiment(parameterBlock p1, std::vector<std::vector<int64_t>> datasetVector, unsigned short int variant, std::ofstream *resFile = nullptr, unsigned int nthRepeat = 1)
+void experiment(parameterBlock p1, std::vector<std::vector<int64_t>> datasetVector, unsigned short int variant, unsigned int nthRepeat = 1, std::ofstream *resFile = nullptr)
 {
 	TimeVar t; //Obiekt ktory bedzie zliczal czas.
   	double processingTime(0.0);//Zmienna ktora bedzie przechowywac czas zliczony przez obiekt t klasy TimeVar
@@ -509,25 +509,24 @@ int main()
 
 	//Testowane warianty parametrów
 	vector<long long unsigned int> testedModulusesInt = {
-		536903681, 400051, 321312269
-		// , 7672487, 821312234893, 921312236417
+		536903681, 400051, 321312269, 7672487, 821312234893, 921312236417
 	};
 	vector<SecurityLevel> testedSecurityLevels = {
-		HEStd_128_classic
-		// , HEStd_192_classic, HEStd_256_classic
+		HEStd_128_classic, HEStd_192_classic, HEStd_256_classic
 	};
 	vector<float> testedDists = {
 		3.2
 		// , 5.4, 8.2, 30.6, 1.7, 0.8, 0.2, 0.01, 0.001
 	};
 	vector<unsigned int> testedNumMults = {
-		1, 2, 3, 4, 6, 8, 10
-		// , 15, 20
+		// 1, 2, 
+		3
+		// , 4, 6, 8, 10, 15, 20
 	};
 	vector<unsigned short int> testedVariants = {1, 2, 3, 8, 9};
 	unsigned int repeat = 5;//Powtórz eksperyment n razy z tymi samymi parametrami
 
-	std::string  resFileName = "../results5";//Plik z wynikami
+	std::string  resFileName = "../results9";//Plik z wynikami
 	vector<std::ofstream> resFiles;
 
 	if (repeat == 1)
@@ -565,7 +564,7 @@ int main()
 						for (auto &currTestedVariant : testedVariants)
 						{
 							parameterBlock params(modulusPicker(currModulus), currSecLvl, currDist, currNumMults);
-							experiment(params,datasetVector,currTestedVariant,&resFiles[rep],rep);
+							experiment(params,datasetVector,currTestedVariant,rep,&resFiles[rep]);
 							std::cout << "Progress (total " << numToTest << ") tested: " << ++numTested << std::endl;
 						}
 
