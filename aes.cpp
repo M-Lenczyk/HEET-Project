@@ -21,7 +21,7 @@ int main(int argc, char* argv[])
 {
     using namespace CryptoPP;
     
-    CryptoPP::Timer timer(CryptoPP::Timer::MICROSECONDS);
+    CryptoPP::Timer timer(CryptoPP::Timer::MILLISECONDS);
     
 	bool display = false;
 	double elapsedTime = 0.0;
@@ -33,7 +33,7 @@ int main(int argc, char* argv[])
     AutoSeededRandomPool prng;
     HexEncoder encoder(new FileSink(std::cout));
 
-    SecByteBlock key(AES_KEY_SIZE_128);
+    SecByteBlock key(AES_KEY_SIZE_256);
     SecByteBlock iv(AES::BLOCKSIZE);
 	
     prng.GenerateBlock(key, key.size());
@@ -46,7 +46,7 @@ int main(int argc, char* argv[])
 	
 	std::vector<unsigned short int> dataSetVector;//10x10 default palisade
    	const short int vectorSize = 10;
-   	const int numberOfVectors = 10000000;
+   	const int numberOfVectors = 1000000;
    	const int fullSize = vectorSize*numberOfVectors;
    	
    	std::stringstream inputStream;

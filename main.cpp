@@ -445,7 +445,7 @@ uint64_t modulusPicker(long long unsigned int approxDesiredModulus = 536903681, 
     	return plaintextModulus;
 	}
    
-int main() 
+int main(int argc, char* argv[]) 
 {
     //auto c = Clock();
     
@@ -525,7 +525,23 @@ int main()
 		3
 		// , 4, 6, 8, 10, 15, 20
 	};
-	vector<unsigned short int> testedVariants = {1, 2, 3, 8, 9};
+	vector<unsigned short int> testedVariants; //{1, 2, 3, 8, 9};
+	std::cout<<argv[1];
+	//return 0;
+	if(argc == 1 && strcmp(argv[1],"--short"+(char)0))
+	{
+		testedVariants.push_back(1);
+		return 0;
+	}
+	else
+	{
+		testedVariants.push_back(1);
+		testedVariants.push_back(2);
+		testedVariants.push_back(3);
+		testedVariants.push_back(8);
+		testedVariants.push_back(9);
+	}
+	
 	unsigned int repeat = 5;//Powtórz eksperyment n razy z tymi samymi parametrami
 
 	std::string  resFileName = "../results9";//Plik z wynikami
