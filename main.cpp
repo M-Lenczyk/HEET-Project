@@ -1,6 +1,7 @@
 #include "palisade.h"
 #include "utils.cpp"
 #include "cryptocontextgen.h"
+#include "cryptocontext.h"
 
 #include <chrono>
 #include <fstream>
@@ -193,7 +194,7 @@ void experiment(parameterBlock p1, std::vector<std::vector<int64_t>> datasetVect
 	
 	//WEKTOR PLAINTEXTOW
 	//Tworzymy kontener na nasz dataset w formacie plaintext
-	vector<Plaintext> plaintextDatasetVector;
+	std::vector<Plaintext> plaintextDatasetVector;
 	for(const auto &data : datasetVector)
 	{
 		//Konwertujemy nasz wektor liczbowy na obiekt plaintext i zapisujemy do naszego kontenera
@@ -414,9 +415,14 @@ void experiment(parameterBlock p1, std::vector<std::vector<int64_t>> datasetVect
 			break;	
 		}
 	}
-	std::cout<<"Raw input data size: "<<sizeof(int64_t) * datasetVector.size() <<" Bytes"<<std::endl;
-	std::cout<<"Plaintext data size: "<<sizeof(Plaintext) * plaintextDatasetVector.size() <<" Bytes"<<std::endl;
-	std::cout<<"Encrypted data size: "<<sizeof(Ciphertext<DCRTPoly>) * ciphertexts.size() <<" Bytes"<<std::endl;
+
+
+	std::cout<<"Raw input data size: "<<sizeof(int64_t) * datasetVector.size()*datasetVector[0].size() <<" Bytes"<<std::endl;	
+	std::cout<<"Plaintext data size: "<<plaintextDatasetVector[0]->GetLength() * plaintextDatasetVector.size() <<" Bytes (plaintext cuts variables to sizeof(char) = 1 B)"<<std::endl;
+	std::cout<<"Encrypted data size: "<<ciphertexts[0]->GetElements().size() *
+	 									ciphertexts[0]->GetElements()[0].GetLength() *
+	 									ciphertexts[0]->GetElements()[0].GetNumOfElements() *
+	  									ciphertexts.size() <<" Bytes"<<std::endl;
 }
 
 //Funkcja która bierze pierwszą spełniającą warunki PALISADE liczbę pierwszą równą bądź większą od naszej proponowanej
@@ -484,10 +490,11 @@ int main(int argc, char* argv[])
 	// parameterBlock p10(myModulus, HEStd_256_classic, 3.2, 3);
 	
 	//TWORZENIE DATASETU - 10 wektorów o rozmiarze vectorSize, wypełniony liczbami od 1 do UpperBound
+	unsigned int vectorCount = 10;
 	unsigned int vectorSize = 10;
 	unsigned long int genUpperBound = 10;//Gorna granica dla generatora liczb losowych
 	std::vector<std::vector<int64_t>> datasetVector;//Kontener dla calego datasetu
-	for(unsigned int i = 0; i<vectorSize; i++)
+	for(unsigned int i = 0; i<vectorCount; i++)
 	{	
 		std::vector<int64_t> v(vectorSize,0);//Tworzenie pojedynczego wektora
 		srand(time(0));
@@ -525,22 +532,7 @@ int main(int argc, char* argv[])
 		3
 		// , 4, 6, 8, 10, 15, 20
 	};
-	vector<unsigned short int> testedVariants; //{1, 2, 3, 8, 9};
-	std::cout<<argv[1];
-	//return 0;
-	if(argc == 2 && strcmp(argv[1],"--short"+(char)0))
-	{
-		testedVariants.push_back(1);
-		return 0;
-	}
-	else
-	{
-		testedVariants.push_back(1);
-		testedVariants.push_back(2);
-		testedVariants.push_back(3);
-		testedVariants.push_back(8);
-		testedVariants.push_back(9);
-	}
+	vector<unsigned short int> testedVariants = {1, 2, 3, 8, 9};
 	
 	unsigned int repeat = 5;//Powtórz eksperyment n razy z tymi samymi parametrami
 
