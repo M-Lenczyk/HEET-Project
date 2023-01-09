@@ -416,7 +416,7 @@ void experiment(parameterBlock p1, std::vector<std::vector<int64_t>> datasetVect
 	}
 	std::cout<<"Raw input data size: "<<sizeof(int64_t) * datasetVector.size() <<" Bytes"<<std::endl;
 	std::cout<<"Plaintext data size: "<<sizeof(Plaintext) * plaintextDatasetVector.size() <<" Bytes"<<std::endl;
-	std::cout<<"Encrypted data size: "<<sizeof(Ciphertext<DCRTPoly>) * ciphertexts.size() <<" v"<<std::endl;
+	std::cout<<"Encrypted data size: "<<sizeof(Ciphertext<DCRTPoly>) * ciphertexts.size() <<" Bytes"<<std::endl;
 }
 
 //Funkcja która bierze pierwszą spełniającą warunki PALISADE liczbę pierwszą równą bądź większą od naszej proponowanej
@@ -528,7 +528,7 @@ int main(int argc, char* argv[])
 	vector<unsigned short int> testedVariants; //{1, 2, 3, 8, 9};
 	std::cout<<argv[1];
 	//return 0;
-	if(argc == 1 && strcmp(argv[1],"--short"+(char)0))
+	if(argc == 2 && strcmp(argv[1],"--short"+(char)0))
 	{
 		testedVariants.push_back(1);
 		return 0;
