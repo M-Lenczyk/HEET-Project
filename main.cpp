@@ -413,8 +413,10 @@ void experiment(parameterBlock p1, std::vector<std::vector<int64_t>> datasetVect
 			decrypt(t, cryptoContext, keyPair, ciphertextResult, plaintextDatasetVector, resFile);
 			break;	
 		}
-		
 	}
+	std::cout<<"Raw input data size: "<<sizeof(int64_t) * datasetVector.size() <<" Bytes"<<std::endl;
+	std::cout<<"Plaintext data size: "<<sizeof(Plaintext) * plaintextDatasetVector.size() <<" Bytes"<<std::endl;
+	std::cout<<"Encrypted data size: "<<sizeof(Ciphertext<DCRTPoly>) * ciphertexts.size() <<" v"<<std::endl;
 }
 
 //Funkcja która bierze pierwszą spełniającą warunki PALISADE liczbę pierwszą równą bądź większą od naszej proponowanej
