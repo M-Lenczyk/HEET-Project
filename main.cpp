@@ -423,6 +423,15 @@ void experiment(parameterBlock p1, std::vector<std::vector<int64_t>> datasetVect
 	 									ciphertexts[0]->GetElements()[0].GetLength() *
 	 									ciphertexts[0]->GetElements()[0].GetNumOfElements() *
 	  									ciphertexts.size() <<" Bytes"<<std::endl;
+	  									
+	/*std::cout<<"\nciphertexts[0]->GetElements().size() = "<<ciphertexts[1]->GetElements().size();
+	std::cout<<"\nciphertexts[0]->GetElements()[0].GetLength() = "<<ciphertexts[1]->GetElements()[1].GetLength();
+	std::cout<<"\nciphertexts[0]->GetElements()[0].GetNumOfElements() = "<<ciphertexts[1]->GetElements()[1].GetNumOfElements();
+	std::cout<<"\nciphertexts.size() = "<<ciphertexts.size()<<std::endl;
+	std::cout<<"\nGetElements() = "<<sizeof(ciphertexts[0]->GetElements())<<std::endl;
+	std::cout<<"\nGetElements()[0] = "<<sizeof(ciphertexts[0]->GetElements()[0])<<std::endl;
+	std::cout<<"\nGetDimensions()[0] = "<<sizeof(ciphertexts[0]->GetElements()[0].GetRingDimension())<<std::endl;
+	*/ 
 }
 
 //Funkcja która bierze pierwszą spełniającą warunki PALISADE liczbę pierwszą równą bądź większą od naszej proponowanej
