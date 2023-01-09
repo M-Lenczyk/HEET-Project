@@ -11,107 +11,37 @@
 #include <crypto++/filters.h>
 #include <crypto++/osrng.h>
 #include <crypto++/base64.h>
+#include <crypto++/seckey.h>
+#include <crypto++/secblock.h>
+#include <crypto++/hex.h>
+#include <crypto++/osrng.h>
+#include <crypto++/files.h>
 
-std::string encrypt(const std::string& input, const std::vector<uint8_t>& key, const std::vector<uint8_t>& iv) {
-    std::string cipher;
-    
-    auto aes = CryptoPP::AES::Encryption(key.data(), key.size());
-    auto aes_cbc = CryptoPP::CBC_Mode_ExternalCipher::Encryption(aes, iv.data());
-    
-    CryptoPP::StringSource ss(
-        input, 
-        true, 
-        new CryptoPP::StreamTransformationFilter(
-            aes_cbc, 
-            new CryptoPP::Base64Encoder(
-                new CryptoPP::StringSink(cipher)
-            )
-        )
-    );
-    return cipher;
-}
-
-std::string decrypt(const std::string& cipher_text, const std::vector<uint8_t>& key, const std::vector<uint8_t>& iv) 
+int main(int argc, char* argv[])
 {
-    std::string plain_text;
+    using namespace CryptoPP;
     
-    auto aes = CryptoPP::AES::Decryption(key.data(), key.size());
-    auto aes_cbc = CryptoPP::CBC_Mode_ExternalCipher::Decryption(aes, iv.data());
-    
-    CryptoPP::StringSource ss(
-        cipher_text, 
-        true, 
-        new CryptoPP::Base64Decoder(
-            new CryptoPP::StreamTransformationFilter(
-                aes_cbc, 
-                new CryptoPP::StringSink(plain_text)
-            )
-        )
-    );
-
-    return plain_text;
-}
- 
-void experimentAES(std::string input, std::size_t AES_KEY_SIZE, CryptoPP::Timer timer)
-{
-    double elapsedTime=0.0;
+	bool display = false;
 	
-	//Generowanie kluczy
-	timer.StartTimer();
-	
-    std::vector<uint8_t> key(AES_KEY_SIZE);
-    std::vector<uint8_t> iv(CryptoPP::AES::BLOCKSIZE);
-
-    elapsedTime = timer.ElapsedTimeAsDouble();
-    std::cout<<"\nKey generation time for "<<AES_KEY_SIZE*8<<" bit key (us): "<<elapsedTime<<std::endl;
-    
-	timer.StartTimer();
-	
-    CryptoPP::BlockingRng rand;
-    rand.GenerateBlock(key.data(), key.size());
-    rand.GenerateBlock(iv.data(), iv.size());
-    
-	elapsedTime = timer.ElapsedTimeAsDouble();
-	std::cout<<"\nInitialization vector and block generation time (us): "<<elapsedTime<<std::endl;
-	
-	
-	timer.StartTimer();
-	
-    auto cipher = encrypt(input, key, iv);
-    
-    elapsedTime = timer.ElapsedTimeAsDouble();
-	std::cout<<"\nEncryption time (us): "<<elapsedTime<<std::endl;
-    
-    
-	timer.StartTimer();
-	
-    auto plain_text = decrypt(cipher, key, iv);
-    
-	elapsedTime = timer.ElapsedTimeAsDouble();
-	std::cout<<"\nDecryption time (us): "<<elapsedTime<<std::endl;
-
-    if(plain_text != input) 
-	{
-        std::cout << "\nData after Encryption & Decryption is diffrent!!!" << std::endl;
-    }
-	//std::cout<<"\nRESULT (After Decryption): "<<plain_text<<std::endl;
-	
-}
-int main()
-{	
-
-	//CryptoPP::ThreadUserTimer timerBase(CryptoPP::TimerBase::Unit unit = CryptoPP::TimerBase::MILLISECONDS, bool stuckAtZero = false);
-    
-    constexpr size_t AES_KEY_SIZE_128 = 16; //AES-128
+	constexpr size_t AES_KEY_SIZE_128 = 16; //AES-128
     constexpr size_t AES_KEY_SIZE_192 = 24; //AES-192
     constexpr size_t AES_KEY_SIZE_256 = 32; //AES-256
     
-    //Zegar, precyzja 
-    CryptoPP::Timer timer(CryptoPP::Timer::MICROSECONDS);
+    AutoSeededRandomPool prng;
+    HexEncoder encoder(new FileSink(std::cout));
+
+    SecByteBlock key(AES_KEY_SIZE_256);
+    SecByteBlock iv(AES::BLOCKSIZE);
+
+    prng.GenerateBlock(key, key.size());
+    prng.GenerateBlock(iv, iv.size());
     
-   	std::vector<unsigned short int> dataSetVector;//10x10
+	////
+	////Dataset creation and loading
+	////
+	std::vector<unsigned short int> dataSetVector;//10x10 default palisade
    	const short int vectorSize = 10;
-   	const short int numberOfVectors = 10;
+   	const int numberOfVectors = 100000;
    	const int fullSize = vectorSize*numberOfVectors;
    	
    	std::stringstream inputStream;
@@ -125,11 +55,84 @@ int main()
 	}
 	//Dataset Loading
     const std::string input = inputStream.str();
-    //std::cout<<"\nINPUT-DATA-STRING: (Before Encryption): "<<input<<std::endl;
     
-    experimentAES(input,AES_KEY_SIZE_128,timer);
-    experimentAES(input,AES_KEY_SIZE_192,timer);
-	experimentAES(input,AES_KEY_SIZE_256,timer);
- 
-	return 0;
+    //Creating plaintext input, cipher string and decrypted string for AES
+    std::string plain = input;
+    std::string cipher, decrypted;
+
+    
+    std::cout << "Plain Text (" << plain.size() << " bytes)" << std::endl;
+    if(display)
+    {
+    	std::cout << plain;
+	}
+	
+	////
+	////ENCRYPTION
+	////
+    try
+    {
+        CBC_Mode< AES >::Encryption e;
+        e.SetKeyWithIV(key, key.size(), iv);
+
+        StringSource s(plain, true, 
+            new StreamTransformationFilter(e,
+                new StringSink(cipher)
+            ) // StreamTransformationFilter
+        ); // StringSource
+    }
+    catch(const Exception& e)
+    {
+        std::cerr << e.what() << std::endl;
+        exit(1);
+    }
+    
+	////
+	////DISPLAY
+	////
+    std::cout << "Key: ";
+    encoder.Put(key, key.size());
+    encoder.MessageEnd();
+    std::cout << " Key length: "<<key.size()<<" bytes"<<std::endl;
+
+    std::cout << "iv: ";
+    encoder.Put(iv, iv.size());
+    encoder.MessageEnd();
+    std::cout << std::endl;
+
+    std::cout << "Cipher Text (" << cipher.size() << " bytes)" << std::endl;
+    
+    if(display)
+    {	
+    	encoder.Put((const byte*)&cipher[0], cipher.size());
+    	encoder.MessageEnd();
+    	std::cout << std::endl;
+	}
+	////
+	////DECRYPTION
+	////
+    try
+    {
+        CBC_Mode< AES >::Decryption d;
+        d.SetKeyWithIV(key, key.size(), iv);
+
+        StringSource s(cipher, true, 
+            new StreamTransformationFilter(d,
+                new StringSink(decrypted)
+            ) // StreamTransformationFilter
+        ); // StringSource
+        std::cout << "Decrypted Text (" << decrypted.size() << " bytes)" << std::endl;
+		if(display)
+		{
+			std::cout << "Decrypted text: " << decrypted << std::endl;
+		}
+        
+    }
+    catch(const Exception& e)
+    {
+        std::cerr << e.what() << std::endl;
+        exit(1);
+    }
+
+    return 0;
 }
