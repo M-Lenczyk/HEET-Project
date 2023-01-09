@@ -21,7 +21,10 @@ int main(int argc, char* argv[])
 {
     using namespace CryptoPP;
     
+    CryptoPP::Timer timer(CryptoPP::Timer::MICROSECONDS);
+    
 	bool display = false;
+	double elapsedTime = 0.0;
 	
 	constexpr size_t AES_KEY_SIZE_128 = 16; //AES-128
     constexpr size_t AES_KEY_SIZE_192 = 24; //AES-192
@@ -30,22 +33,25 @@ int main(int argc, char* argv[])
     AutoSeededRandomPool prng;
     HexEncoder encoder(new FileSink(std::cout));
 
-    SecByteBlock key(AES_KEY_SIZE_256);
+    SecByteBlock key(AES_KEY_SIZE_128);
     SecByteBlock iv(AES::BLOCKSIZE);
-
+	
     prng.GenerateBlock(key, key.size());
     prng.GenerateBlock(iv, iv.size());
     
 	////
 	////Dataset creation and loading
 	////
+	
+	
 	std::vector<unsigned short int> dataSetVector;//10x10 default palisade
    	const short int vectorSize = 10;
-   	const int numberOfVectors = 100000;
+   	const int numberOfVectors = 10000000;
    	const int fullSize = vectorSize*numberOfVectors;
    	
    	std::stringstream inputStream;
    	srand((unsigned) time(NULL));
+   	timer.StartTimer();
    	
    	for(int i = 0; i<fullSize;i++)
    	{
@@ -53,6 +59,10 @@ int main(int argc, char* argv[])
    		dataSetVector.push_back(sampleValue);
    		inputStream<<dataSetVector[i];
 	}
+	elapsedTime = timer.ElapsedTimeAsDouble();
+	std::cout<<"\nDataset creation time (us): "<<elapsedTime<<std::endl;
+	elapsedTime = 0.0;
+	
 	//Dataset Loading
     const std::string input = inputStream.str();
     
@@ -71,15 +81,20 @@ int main(int argc, char* argv[])
 	////ENCRYPTION
 	////
     try
-    {
+    {	
+    	timer.StartTimer();
+    	
         CBC_Mode< AES >::Encryption e;
         e.SetKeyWithIV(key, key.size(), iv);
-
+		
         StringSource s(plain, true, 
             new StreamTransformationFilter(e,
                 new StringSink(cipher)
             ) // StreamTransformationFilter
         ); // StringSource
+        elapsedTime = timer.ElapsedTimeAsDouble();
+		std::cout<<"\nEncryption time (us): "<<elapsedTime<<std::endl;
+		elapsedTime = 0.0;
     }
     catch(const Exception& e)
     {
@@ -112,15 +127,20 @@ int main(int argc, char* argv[])
 	////DECRYPTION
 	////
     try
-    {
+    {	timer.StartTimer();
         CBC_Mode< AES >::Decryption d;
         d.SetKeyWithIV(key, key.size(), iv);
-
+		
         StringSource s(cipher, true, 
             new StreamTransformationFilter(d,
                 new StringSink(decrypted)
             ) // StreamTransformationFilter
         ); // StringSource
+        
+        elapsedTime = timer.ElapsedTimeAsDouble();
+		std::cout<<"\nDecryption time (us): "<<elapsedTime<<std::endl;
+		elapsedTime = 0.0;
+		
         std::cout << "Decrypted Text (" << decrypted.size() << " bytes)" << std::endl;
 		if(display)
 		{
