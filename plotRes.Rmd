@@ -406,3 +406,71 @@ df9 %>%
     theme_dark() + 
     theme(axis.text.x = element_text(angle = -45, hjust = 0))
 ```
+
+
+# Porównanie {.tabset .tabset-fade .tabset-pills}
+
+```{r}
+resultsCmpr <- read.csv2("data/resultsAes.csv", stringsAsFactors = T, dec = ".")
+```
+
+```{r}
+resultsCmpr %>%
+  ##na.omit() %>% 
+  ##group_by(ptMod,variant,securityLevel,dist,numMults) %>% 
+  ##summarise(across(-nthRep, mean), .groups = "drop", na.rm=T) %>% 
+  mutate_if(is.numeric, round, 2) %>% 
+  do(.,.) ->
+  dfCmpr
+```
+
+## Rozmiar danych
+
+```{r fig.height=10, fig.width=10, warning=FALSE, message=FALSE}
+dfCmpr %>% 
+  ggplot(aes(y = encSize,
+             x = securityLength,
+             color = type)) +
+    facet_grid(. ~ .,
+               scales = "fixed") +
+    geom_point(size = 3,
+               position = position_nudge()) +
+    scale_y_continuous(trans = "log10", limits = c(1,NA)) +
+    ylab("Size (bytes)") +
+    ggtitle("Encrypted data size") + 
+    theme_dark()
+```
+
+## Czas szyfrowania
+
+```{r fig.height=10, fig.width=10, warning=FALSE, message=FALSE}
+dfCmpr %>% 
+  ggplot(aes(y = encTime,
+             x = securityLength,
+             color = type)) +
+    facet_grid(. ~ .,
+               scales = "fixed") +
+    geom_point(size = 3,
+               position = position_nudge()) +
+    scale_y_continuous(trans = "log10") +
+    ylab("Time (us)") +
+    ggtitle("Encryption time") + 
+    theme_dark()
+```
+
+## Czas deszyfrowania
+
+```{r fig.height=10, fig.width=10, warning=FALSE, message=FALSE}
+dfCmpr %>% 
+  ggplot(aes(y = decTime,
+             x = securityLength,
+             color = type)) +
+    facet_grid(. ~ .,
+               scales = "fixed") +
+    geom_point(size = 3,
+               position = position_nudge()) +
+    scale_y_continuous(trans = "log10") +
+    ylab("Time (us)") +
+    ggtitle("Decryption time") + 
+    theme_dark()
+```
