@@ -23,7 +23,10 @@ measureDict <- c(keyGenTime = "key generation",
                  totEncTime = "total encryption",
                  avgEncTime = "avg encryption",
                  totHomOpr = "total hom. operations",
-                 decTime = "decryption")
+                 decTime = "decryption",
+                 encSize = "encrypted size",
+                 encTime = "encryption",
+                 opTime = "modyfication op.")
 variantDict <- c(`1` = "10 x ADD",
                  `2` = "10 x MUL",
                  `3` = "5x ADD + 5x MUL",
@@ -417,19 +420,25 @@ resultsCmpr <- read.csv2("data/resultsAes.csv", stringsAsFactors = T, dec = ".")
 ```{r}
 resultsCmpr %>%
   ##na.omit() %>% 
-  ##group_by(ptMod,variant,securityLevel,dist,numMults) %>% 
-  ##summarise(across(-nthRep, mean), .groups = "drop", na.rm=T) %>% 
+  group_by(type,securityLen) %>% 
+  summarise(across(, mean), .groups = "drop", na.rm=T) %>% 
+  mutate(securityLen = as.character(securityLen)) %>% 
   mutate_if(is.numeric, round, 2) %>% 
   do(.,.) ->
   dfCmpr
 ```
 
+* def - ptMOd=537133057; numMul=3; dist=3.2; variant=8
+* best case - ptMOd=5767169; sec=HEStd_128_classic; numMul=1; variant=1
+* worst case - ptMOd=549760663553; sec=HEStd_256_classic; numMul=20; variant=2
+
+
 ## Rozmiar danych
 
-```{r fig.height=10, fig.width=10, warning=FALSE, message=FALSE}
+```{r fig.height=5, fig.width=5, warning=FALSE, message=FALSE}
 dfCmpr %>% 
   ggplot(aes(y = encSize,
-             x = securityLength,
+             x = securityLen,
              color = type)) +
     facet_grid(. ~ .,
                scales = "fixed") +
@@ -441,36 +450,26 @@ dfCmpr %>%
     theme_dark()
 ```
 
-## Czas szyfrowania
 
-```{r fig.height=10, fig.width=10, warning=FALSE, message=FALSE}
+## Czasy przetwarzania
+
+```{r fig.height=5, fig.width=8, warning=FALSE, message=FALSE}
 dfCmpr %>% 
-  ggplot(aes(y = encTime,
-             x = securityLength,
+  pivot_longer(encTime:opTime,
+               names_to = "measure", values_to = "time",
+               values_drop_na = F) %>%
+  mutate(measure=recode(measure, !!!measureDict)) %>% 
+  ggplot(aes(y = time,
+             x = securityLen,
              color = type)) +
-    facet_grid(. ~ .,
+    facet_grid(. ~ measure,
                scales = "fixed") +
     geom_point(size = 3,
                position = position_nudge()) +
     scale_y_continuous(trans = "log10") +
     ylab("Time (us)") +
-    ggtitle("Encryption time") + 
+    ggtitle("Processing time") + 
     theme_dark()
 ```
 
-## Czas deszyfrowania
 
-```{r fig.height=10, fig.width=10, warning=FALSE, message=FALSE}
-dfCmpr %>% 
-  ggplot(aes(y = decTime,
-             x = securityLength,
-             color = type)) +
-    facet_grid(. ~ .,
-               scales = "fixed") +
-    geom_point(size = 3,
-               position = position_nudge()) +
-    scale_y_continuous(trans = "log10") +
-    ylab("Time (us)") +
-    ggtitle("Decryption time") + 
-    theme_dark()
-```
