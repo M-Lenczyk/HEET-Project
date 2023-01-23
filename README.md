@@ -1,14 +1,14 @@
 # H.E.E.T - Homomorphic Encryption Efficiency Testing Project
 # Wprowadzenie
-H.E.E.T Project - to projekt mający na celu ewaluację wydajnościową szyfrowania homomorficznego w porównaniu z tradycyjnym szyfrowaniem blokowym. W ramach projektu zmierzone i porównane zostały m.in. czasy tworzenia zaszyfrowanego zbioru danych oraz ich zajętość miejsca. Projekt został wykonany w języku C++, z wykorzystaniem WSL i systemu Ubuntu 22.04 . Jako bibliotekę szyfrowania homomorficznego zdecydowano się na rozwiązanie PALISADE <link> , w przypadku szyfrowania niehomomorficznego zdecydowano się na algorytm Advanced Encryption Standard z biblioteki Crypto++ <link>.
+H.E.E.T Project - to projekt mający na celu ewaluację wydajnościową szyfrowania homomorficznego w porównaniu z tradycyjnym szyfrowaniem blokowym. W ramach projektu zmierzone i porównane zostały m.in. czasy tworzenia zaszyfrowanego zbioru danych oraz ich zajętość miejsca. Projekt został wykonany w języku C++, z wykorzystaniem WSL i systemu Ubuntu 22.04 . Jako bibliotekę szyfrowania homomorficznego zdecydowano się na rozwiązanie [PALISADE](https://gitlab.com/palisade/palisade-release), w przypadku szyfrowania niehomomorficznego zdecydowano się na algorytm Advanced Encryption Standard z biblioteki [Crypto++](https://www.cryptopp.com/wiki/Main_Page).
 
 # Instalacja 
 
 ## PALISADE
 
-W celu zainstalowania biblioteki szyfrowania homomorficznego PALISADE wymagany jest CMake. Szczegółowe instrukcje instalacji w zależności od wybranego systemu operacyjnego znajdują się na oficjalnej stronie projektu PALISADE. Zalecamy jednak stosowanie Linuxa. Szczegółowy proces instalacji biblioteki dla systemu Linux wykorzystany do tego projektu znajduje się pod adresem: <link>
+W celu zainstalowania biblioteki szyfrowania homomorficznego PALISADE wymagany jest CMake. Szczegółowe instrukcje instalacji w zależności od wybranego systemu operacyjnego znajdują się na oficjalnej stronie projektu PALISADE. Zalecamy jednak stosowanie Linuxa. Szczegółowy proces instalacji biblioteki dla systemu Linux wykorzystany do tego projektu znajduje się [tutaj](https://www.cryptopp.com/wiki/Linux).
 
-Po pomyślnej weryfikacji instalacji PALISADE i Crypto++ i uruchomienia przykładowego projektu dołączonego do biblioteki należy pobrać repozytorium projektu. W zależności od preferencji użytkownika projekt może znajdować się bezpośrednio w katalogu głównym biblioteki bądź osobno, w pliku CMakeLists.txt <link do pliku> znajdują się adnotacje automatycznie znajdujące bibliotekę.
+Po pomyślnej weryfikacji instalacji PALISADE i Crypto++ i uruchomienia przykładowego projektu dołączonego do biblioteki należy pobrać repozytorium projektu. W zależności od preferencji użytkownika projekt może znajdować się bezpośrednio w katalogu głównym biblioteki bądź osobno, w pliku [CMakeLists.txt](https://github.com/M-Lenczyk/HEET-Project/blob/80b7cc12bb4bd1549962efa5a40b665ac9ec36db/CMakeLists.txt) znajdują się adnotacje automatycznie znajdujące bibliotekę.
 
 ## Crypto++
 
@@ -101,21 +101,35 @@ W każdym eksperymencie mierzony był czas:
 
 W przypadku AES jedynym parametrem który należało wziąć pod uwagę była długość klucza. Odpowiednikiem długości klucza w przypadku PALISADE był parametr securityLevel, stąd w celu adekwatnego porównania należy wziąć zbiór danych zaszyfrowany kluczem o takiej samej długości.
 
-# Konkluzja i wyniki eksperymentu
+# Wyniki eksperymentu
 
-Wyniki eksperymentu są dostępne w postaci raportu w formacie .html <link>. Raport ten składa się z trzech części.
+Wyniki eksperymentu są dostępne w postaci [raportu](https://github.com/M-Lenczyk/HEET-Project/blob/8f256cd4547db8d557ed0dbe26ca93b26c6d8812/plotRes.html) w formacie html. Raport jest również dostępny w [postaci rmarkdown](https://github.com/M-Lenczyk/HEET-Project/blob/8f256cd4547db8d557ed0dbe26ca93b26c6d8812/plotRes.Rmd) umożliwiający ewentualne modyfikacje wizualizacji i generowanie do postaci html. Raport ten składa się z trzech części.
 
 Część pierwsza zawiera wykresy przedstawiające otrzymane czasy przetwarzania dla eksperymentów 1-4 dotyczących ewaluacji wydajnościowej (czasowej) szyfrowania homomorficznego dla poszczególnych parametrów, celem określenia jak zmiana wyłącznie jednego parametru wpłynie na ogólny czas całego procesu szyfrowania homomorficznego i poszczególnych pojedynczych operacji homomorficznych.
 
 Część druga zawiera wykresy przedstawiające otrzymane czasy przetwarzania dla eksperymentów 5-6 dotyczących ewaluacji wydajnościowej (czasowej) szyfrowania homomorficznego dla kombinacji parametrów.
 
-Część trzecia zawiera porównanie czasów przetwarzania oraz rozmiarów danych dla zbioru danych zaszyfrowanego z użyciem szyfrowania homomorficznego oraz AES'a. Ponieważ PALISADE wymaga określenia parametrów celem umożliwenia realizacji procesu szyfrowania homomorficznego, porównane zostały 3 przypadki:
+Część trzecia zawiera porównanie czasów przetwarzania oraz rozmiarów danych dla zbioru danych zaszyfrowanego z użyciem szyfrowania homomorficznego oraz AES'a dla trzech długości klucza (128,192,256). Ponieważ PALISADE wymaga określenia parametrów celem umożliwenia realizacji procesu szyfrowania homomorficznego, porównane zostały 3 przypadki:
 
 - def - oznaczający scenariusz domyślny, gdzie wartości parametrów są domyślne zgodne z [standardem](https://projects.csail.mit.edu/HEWorkshop/HomomorphicEncryptionStandard2018.pdf) i mieszanego wariantu operacji homomorficznych.
 
-- best case- oznaczający najlepszy możliwy scenariusz, optymalnym doborem parametrów i wariantu cechującego się najkrótszym czasem przetwarzania. W tym przypadku jest to wariant składający się wyłącznie z samych operacji dodawania.
+- best case- oznaczający pojedynczy najlepszy możliwy scenariusz, optymalnym doborem parametrów i wariantu cechującego się najkrótszym czasem przetwarzania. W tym przypadku jest to wariant składający się wyłącznie z samych operacji dodawania.
 
-- worst case - oznaczający najgorszy możliwy scenariusz, gdzie wybrano najdłuższy klucz, gigantyczny modulus oraz dużą liczbę operacji mnożeń, które są najbardziej wymagającą z wszystkich operacji homomorficznych. 
+- worst case - oznaczający pojedynczy najgorszy możliwy scenariusz, gdzie wybrano najdłuższy klucz, gigantyczny modulus oraz dużą liczbę operacji mnożeń, które są najbardziej wymagającą z wszystkich operacji homomorficznych. 
 
+# Konkluzja
+
+Analizując wykresy dotyczące poszczególnych parametrów wykorzystywanych przez PALISADE do szyfrowania homomorficznego, można jednoznacznie stwierdzić że największy wpływ ma zmiana parametru numMults czyli maksymalna głębokość mnożeń. Zauważono również pozytywną korelację między czasem a parametrem securityLevel. Zwiększanie wartości tego parametru, jednocześnie zwiększało średni czas pojedynczego szyfrowania i generowania kluczy dla operacji homomorficznych. Podobną zależność zauważono dla parametru modulus. W przypadku parametru dist, zauważono średnio dłuższe czasy szyfrowania i generowania operacji homomorficznych dla małych wartości (tj. < 5). Warto również tutaj dodać że zwiększanie 
+
+W kwestii rozmiaru, nasz zbiór zaszyfrowany homomorficznie posiada średnio rozmiar około 1 MB, natomiast zbiór zaszyfrowany za pomocą AES posiada rozmiar około 0.1kB co daje nam to narzut rzędu około 10 000. Dodatkowo rozmiar danych dla szyfrowania homomorficznego silnie zależy od wybranych parametrów. Dla scenariusza worst-case rozmiar danych sięga nawet 10MB. W tym wypadku należy mieć na uwadze iż lekka zmiana niektórych parametrów (np. numMults) może diametralnie zmienić wynik końcowy.
+
+# Referencje
+
+- PALISADE Manual: https://gitlab.com/palisade/palisade-development/blob/master/doc/palisade_manual.pdf
+- PALISADE Home: https://gitlab.com/palisade/palisade-release
+- PALISADE Webinars: https://palisade-crypto.org/webinars/
+- PALISADE Library: https://palisade.gitlab.io/palisade-development/classes.html
+- Crypto++ Home: https://www.cryptopp.com/wiki/Main_Page
+- Homomorphic Encryption Standard: https://eprint.iacr.org/2019/939.pdf
 
 
