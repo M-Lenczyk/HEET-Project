@@ -1,5 +1,4 @@
-# HEET-Project
-Homomorphic Encryption Efficiency Testing Project
+# H.E.E.T - Homomorphic Encryption Efficiency Testing Project
 # Wprowadzenie
 H.E.E.T Project - to projekt mający na celu ewaluację wydajnościową szyfrowania homomorficznego w porównaniu z tradycyjnym szyfrowaniem blokowym. W ramach projektu zmierzone i porównane zostały m.in. czasy tworzenia zaszyfrowanego zbioru danych oraz ich zajętość miejsca. Projekt został wykonany w języku C++, z wykorzystaniem WSL i systemu Ubuntu 22.04 . Jako bibliotekę szyfrowania homomorficznego zdecydowano się na rozwiązanie PALISADE <link> , w przypadku szyfrowania niehomomorficznego zdecydowano się na algorytm Advanced Encryption Standard z biblioteki Crypto++ <link>.
 
@@ -29,13 +28,15 @@ Uruchomienie programu dla szyfrowania homomorficznego
     make
     ./main
 ```
-Wynikiem uruchomienia jest komunikat w konsoli prezentujący czas 
+Wynikiem uruchomienia jest komunikat w konsoli prezentujący czas wykonania poszczególnych operacji homomorficznych, utworzenia zaszyfrowanego zbioru danych, czas deszyfracji zbioru danych oraz zajmowane przez niego miejsce.
+
 Uruchomienie programu dla tradycyjnego szyfrowania AES
 
 ```
 g++ -g3 -ggdb -O0 -Wall -Wextra -Wno-unused -o AesOutput aes.cpp -lcryptopp
 ./AesOutput
 ```
+Wynikiem uruchomienia jest komunikat w konsoli prezentujący czas utworzenia zaszyfrowanego zbioru danych dla klucza o określonej długości oraz rozmiar tego zaszyfrowanego zbioru.
 
 # Schemat Eksperymentu
 
@@ -48,9 +49,9 @@ W ramach eksperymentu zrealizowane zostało
 6. Ewaluacja zajętości miejsca zbioru danych zaszyfrowanego za pomocą szyfrowania AES
 7. Porównanie wydajności oraz zajętości miejsca obu metod szyfrowania
 
-Na potrzeby testów utworzony został utworzony zbiór danych składający z 1 000 000 wektorów o rozmiarze 10, przechowujący liczby z zakresu <1;10>.  
+Na potrzeby testów utworzony został utworzony zbiór danych składający z 1 000 000 wektorów o rozmiarze 10, przechowujący liczby z zakresu <1;10>. Mały zakres poszczególnych wartości jest spowodowany dużą liczbą operacji homomorficznych który może spodować utworzenie wartości większych niż ustalona górna granica definiowana przez parametr modulus dla szyfrowania homomorficznego.   
 
-## Ewaluacja wydajnościowa szyfrowania homomorficznego z wykorzystaniem biblioteki PALISADE
+## Ewaluacja szyfrowania homomorficznego z wykorzystaniem biblioteki PALISADE
 
 Na potrzeby testów PALISADE ustaliliśmy 5 wariantów kombinacji operacji homomorficznych:
 
@@ -64,8 +65,8 @@ Parametry które zostały wybrane i odpowiednio zmieniane na potrzeby testów s�
 
    - modulus - modulo, odpowiednio duża liczba naturalna, określająca górną granicę obliczeń. PALISADE wykorzystuje ten parametr do wygenerowania reszty parametrów dla metod potrzebnych do realizacji operacji homomorficznych.
    - securityLevel - klasa oznaczająca wybrany poziom zabezpieczeń, oznacza również długość klucza. Może mieć ona wartość 128,192 lub 256.
-    - dist - distribution parameter for Gaussian noise generation, docelowe odchylenie standardowe dla rozkładu błędów dla szumu Gaussowskiego.
-    - numMults - oznacza największą możliwą "głębokość" operacji mnożeń. Może ale nie musi być równa liczbie operacji mnożeń. Np. x1*x2*x3*x4  możemy zapisać jako wyrażenie ((x1*x2)*x3)*x4 dla którego głębokość będzie wynosić 3, a dla (x1*x2)*(x3*x4) natomiast mamy głębokość równą 2.
+   - dist - distribution parameter for Gaussian noise generation, docelowe odchylenie standardowe dla rozkładu błędów dla szumu Gaussowskiego.
+   - numMults - oznacza największą możliwą "głębokość" operacji mnożeń. Może ale nie musi być równa liczbie operacji mnożeń. Np. x1*x2*x3*x4  możemy zapisać jako wyrażenie ((x1*x2)*x3)*x4 dla którego głębokość będzie wynosić 3, a dla (x1*x2)*(x3*x4) natomiast mamy głębokość równą 2.
 
 Wybrane zostały następujące zestawy wartości parametrów:
 - modulus: { 536903681, 400051, 321312269, 7672487, 821312234893, 921312236417 }
@@ -96,7 +97,25 @@ W każdym eksperymencie mierzony był czas:
    - total encryption - całkowity czas potrzebny do otrzymania zaszyfrowanego zbioru danych
    - total hom. operations - czas trwania wybranego wariantu operacji homomorficznych
 
-## Ewaluacja wydajnościowa szyfrowania AES z wykorzystaniem biblioteki Crypto++
+## Ewaluacja szyfrowania AES z wykorzystaniem biblioteki Crypto++
 
 W przypadku AES jedynym parametrem który należało wziąć pod uwagę była długość klucza. Odpowiednikiem długości klucza w przypadku PALISADE był parametr securityLevel, stąd w celu adekwatnego porównania należy wziąć zbiór danych zaszyfrowany kluczem o takiej samej długości.
+
+# Konkluzja i wyniki eksperymentu
+
+Wyniki eksperymentu są dostępne w postaci raportu w formacie .html <link>. Raport ten składa się z trzech części.
+
+Część pierwsza zawiera wykresy przedstawiające otrzymane czasy przetwarzania dla eksperymentów 1-4 dotyczących ewaluacji wydajnościowej (czasowej) szyfrowania homomorficznego dla poszczególnych parametrów, celem określenia jak zmiana wyłącznie jednego parametru wpłynie na ogólny czas całego procesu szyfrowania homomorficznego i poszczególnych pojedynczych operacji homomorficznych.
+
+Część druga zawiera wykresy przedstawiające otrzymane czasy przetwarzania dla eksperymentów 5-6 dotyczących ewaluacji wydajnościowej (czasowej) szyfrowania homomorficznego dla kombinacji parametrów.
+
+Część trzecia zawiera porównanie czasów przetwarzania oraz rozmiarów danych dla zbioru danych zaszyfrowanego z użyciem szyfrowania homomorficznego oraz AES'a. Ponieważ PALISADE wymaga określenia parametrów celem umożliwenia realizacji procesu szyfrowania homomorficznego, porównane zostały 3 przypadki:
+
+- def - oznaczający scenariusz domyślny, gdzie wartości parametrów są domyślne zgodne z [standardem](https://projects.csail.mit.edu/HEWorkshop/HomomorphicEncryptionStandard2018.pdf) i mieszanego wariantu operacji homomorficznych.
+
+- best case- oznaczający najlepszy możliwy scenariusz, optymalnym doborem parametrów i wariantu cechującego się najkrótszym czasem przetwarzania. W tym przypadku jest to wariant składający się wyłącznie z samych operacji dodawania.
+
+- worst case - oznaczający najgorszy możliwy scenariusz, gdzie wybrano najdłuższy klucz, gigantyczny modulus oraz dużą liczbę operacji mnożeń, które są najbardziej wymagającą z wszystkich operacji homomorficznych. 
+
+
 
