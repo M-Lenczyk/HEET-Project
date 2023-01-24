@@ -103,7 +103,7 @@ W przypadku AES jedynym parametrem który należało wziąć pod uwagę była d�
 
 # Wyniki eksperymentu
 
-Wyniki eksperymentu są dostępne w postaci [raportu](https://github.com/M-Lenczyk/HEET-Project/blob/8f256cd4547db8d557ed0dbe26ca93b26c6d8812/plotRes.html) w formacie html. Raport jest również dostępny w [postaci rmarkdown](https://github.com/M-Lenczyk/HEET-Project/blob/8f256cd4547db8d557ed0dbe26ca93b26c6d8812/plotRes.Rmd) umożliwiający ewentualne modyfikacje wizualizacji i generowanie do postaci html. Raport ten składa się z trzech części.
+Wyniki eksperymentu są dostępne w postaci [raportu](https://m-lenczyk.github.io/HEET-Project/plotRes.html). Raport jest również dostępny w [postaci rmarkdown](https://github.com/M-Lenczyk/HEET-Project/blob/8f256cd4547db8d557ed0dbe26ca93b26c6d8812/plotRes.Rmd) umożliwiający ewentualne modyfikacje wizualizacji i generowanie do postaci html. Raport ten składa się z trzech części.
 
 Część pierwsza zawiera wykresy przedstawiające otrzymane czasy przetwarzania dla eksperymentów 1-4 dotyczących ewaluacji wydajnościowej (czasowej) szyfrowania homomorficznego dla poszczególnych parametrów, celem określenia jak zmiana wyłącznie jednego parametru wpłynie na ogólny czas całego procesu szyfrowania homomorficznego i poszczególnych pojedynczych operacji homomorficznych.
 
